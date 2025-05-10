@@ -1,0 +1,41 @@
+/* Professional styled navigation bar */
+.navbar {
+  background: linear-gradient(90deg, #0d47a1, #1976d2);
+  display: flex;
+  justify-content: space-around;
+  padding: 0.75rem 0;
+  box-shadow: 0 4px 12px rgba(25, 118, 210, 0.6);
+  border-radius: 8px;
+  margin: 0 1rem;
+}
+
+.navbar a {
+  color: #ffffff;
+  font-weight: 700;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  padding: 0.6rem 0;
+  font-size: 1.1rem;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.3);
+  transition: color 0.3s ease, transform 0.3s ease;
+  border-bottom: 3px solid transparent;
+  border-radius: 4px 4px 0 0;
+}
+
+.navbar a.active {
+  border-bottom: 3px solid #ffeb3b;
+  color: #ffeb3b;
+  transform: scale(1.05);
+  text-shadow: 0 0 8px #ffeb3b;
+}
+
+.navbar a:hover {
+  color: #bbdefb;
+  transform: scale(1.05);
+  text-shadow: 0 0 6px #bbdefb;
+}
