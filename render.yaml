@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: safedrive-pro-backend
+    env: node
+    buildCommand: npm install
+    startCommand: node server.js
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: SAFEDRIVE_API_KEY
+        value: safedrive_secret_key
+    plan: free
