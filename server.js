@@ -8,8 +8,22 @@ const path = require('path');
 const app = express();
 const PORT = process.env.PORT || 4000;
 
-// Enable CORS for all routes
-app.use(cors());
+// Add request logging middleware
+app.use((req, res, next) => {
+  console.log(`[${new Date().toISOString()}] ${req.method} ${req.originalUrl}`);
+  next();
+});
+
+const corsOptions = {
+  origin: process.env.NODE_ENV === 'production'
+    ? ['https://safedrive-pro.netlify.app']  // Your production frontend URL
+    : ['http://localhost:3000', 'http://localhost:3001'], // Development URLs
+  methods: ['GET', 'POST'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true
+};
+
+app.use(cors(corsOptions));
 
 // Parse JSON request bodies
 app.use(express.json());
