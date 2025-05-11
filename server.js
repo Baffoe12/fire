@@ -256,7 +256,7 @@ app.get('/api/car/position', async (req, res) => {
         lng: { [Op.ne]: null }
       }
     });
-    if (latest && latest.lat && latest.lng) {
+    if (latest && latest.lat !== null && latest.lng !== null) {
       res.json({ lat: latest.lat, lng: latest.lng, speed: 42 });
     } else {
       throw new Error('No position data found');
