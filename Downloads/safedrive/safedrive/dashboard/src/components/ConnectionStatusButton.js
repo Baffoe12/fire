@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+  import React, { useEffect, useState } from 'react';
 import { Button, Box } from '@mui/material';
 
 // Real backend connection status
@@ -8,7 +8,7 @@ function useConnectionStatus() {
     let timeout;
     async function checkConnection() {
       try {
-        const res = await fetch('/api/health', { cache: 'no-store' });
+        const res = await fetch('https://fire-h0u2.onrender.com/api/health', { cache: 'no-store' });
         if (res.ok) setConnected(true);
         else setConnected(false);
       } catch {

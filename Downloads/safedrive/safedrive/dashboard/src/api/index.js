@@ -1,7 +1,7 @@
 // API configuration and utility functions
 
 // Get the API URL from environment variables or use a default
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:4000';
+const API_URL = process.env.REACT_APP_API_URL || 'https://fire-h0u2.onrender.com';
 
 // API endpoints
 const ENDPOINTS = {
