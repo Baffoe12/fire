@@ -112,7 +112,7 @@ app.get('/api/stats', async (req, res) => {
     
     res.json(stats);
   } catch (err) {
-    console.error('Database error in stats endpoint:', err.message);
+    console.error('Database error in stats endpoint:', err);
     // Return mock data if database fails
     res.json({
       total_accidents: 5,
@@ -136,7 +136,7 @@ app.get('/api/sensor', async (req, res) => {
       throw new Error('No sensor data found');
     }
   } catch (err) {
-    console.error('Database error in sensor endpoint:', err.message);
+    console.error('Database error in sensor endpoint:', err);
     // Return mock data if database fails
     res.json({
       id: 1,
@@ -163,7 +163,7 @@ app.get('/api/map', async (req, res) => {
     });
     res.json(accidents.map(e => ({ id: e.id, lat: e.lat, lng: e.lng, timestamp: e.timestamp })));
   } catch (err) {
-    console.error('Database error in map endpoint:', err.message);
+    console.error('Database error in map endpoint:', err);
     // Return mock data if database fails
     res.json([
       { id: 'abc123', lat: 5.6545, lng: -0.1869, timestamp: new Date(Date.now() - 86400000).toISOString() },
@@ -173,13 +173,24 @@ app.get('/api/map', async (req, res) => {
   }
 });
 
+// Get sensor history
+app.get('/api/sensor/history', async (req, res) => {
+  try {
+    const history = await SensorDataModel.findAll({ order: [['timestamp', 'DESC']], limit: 1000 });
+    res.json(history);
+  } catch (err) {
+    console.error('Database error in sensor history endpoint:', err);
+    res.status(500).json({ error: 'Database error', details: err.message });
+  }
+});
+
 // Fallback accidents endpoint that doesn't require database
 app.get('/api/accidents', async (req, res) => {
   try {
     const accidents = await AccidentEventModel.findAll({ order: [['createdAt', 'DESC']] });
     res.json(accidents);
   } catch (err) {
-    console.error('Database error in accidents endpoint:', err.message);
+    console.error('Database error in accidents endpoint:', err);
     // Return mock data if database fails
     res.json([
       {
@@ -226,7 +237,7 @@ app.get('/api/car/position', async (req, res) => {
       throw new Error('No position data found');
     }
   } catch (err) {
-    console.error('Database error in car position endpoint:', err.message);
+    console.error('Database error in car position endpoint:', err);
     // Return mock data if database fails
     res.json({
       lat: 5.6545, // University of Ghana, Legon
@@ -299,16 +310,6 @@ app.post('/api/accident', requireApiKey, async (req, res) => {
   }
 });
 
-// Get sensor history
-app.get('/api/sensor/history', async (req, res) => {
-  try {
-    const history = await SensorDataModel.findAll({ order: [['timestamp', 'DESC']], limit: 1000 });
-    res.json(history);
-  } catch (err) {
-    res.status(500).json({ error: 'Database error', details: err.message });
-  }
-});
-
 // Get accident details by ID
 app.get('/api/accident/:id', async (req, res) => {
   try {
@@ -350,6 +351,26 @@ app.post('/api/emergency-alert', async (req, res) => {
     res.status(500).json({ error: 'Failed to send email' });
   }
 });
+const accidentSeeder = require('./seeders/20250423201000-demo-accident-event');
+const sensorSeeder = require('./seeders/20250423201300-demo-sensor-data');
+const additionalSensorSeeder = require('./seeders/20250423201400-additional-sensor-data');
+
+// API endpoint to trigger seeders programmatically (secured with API key)
+app.post('/api/seed', requireApiKey, async (req, res) => {
+  try {
+    // Run accident seeder
+    await accidentSeeder.up(sequelize.getQueryInterface(), Sequelize);
+    // Run sensor seeders
+    await sensorSeeder.up(sequelize.getQueryInterface(), Sequelize);
+    await additionalSensorSeeder.up(sequelize.getQueryInterface(), Sequelize);
+
+    res.json({ status: 'ok', message: 'Seeders executed successfully' });
+  } catch (err) {
+    console.error('Error running seeders:', err);
+    res.status(500).json({ error: 'Failed to run seeders', details: err.message });
+  }
+});
+
 // Serve static files from the React app 
 app.listen(PORT, () => {
   console.log(`SafeDrive backend running on port ${PORT}`);
