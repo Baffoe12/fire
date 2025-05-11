@@ -8,6 +8,11 @@ const path = require('path');
 const app = express();
 const PORT = process.env.PORT || 4000;
 
+const morgan = require('morgan');
+
+// Add morgan middleware for logging HTTP requests with status codes
+app.use(morgan(':method :url :status :res[content-length] - :response-time ms'));
+
 // Add request logging middleware
 app.use((req, res, next) => {
   console.log(`[${new Date().toISOString()}] ${req.method} ${req.originalUrl}`);
