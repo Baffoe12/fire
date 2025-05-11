@@ -401,7 +401,79 @@ app.post('/api/seed', requireApiKey, async (req, res) => {
   }
 });
 
+const PDFDocument = require('pdfkit');
+const { Op } = require('sequelize');
+
 // Serve static files from the React app 
+
+// PDF report generation endpoint
+app.get('/api/reports/pdf', async (req, res) => {
+  try {
+    // Fetch recent accident events and sensor data (limit to 50 for report)
+    const accidents = await AccidentEventModel.findAll({
+      order: [['timestamp', 'DESC']],
+      limit: 50
+    });
+    const sensors = await SensorDataModel.findAll({
+      order: [['timestamp', 'DESC']],
+      limit: 50
+    });
+
+    // Create a new PDF document
+    const doc = new PDFDocument({ size: 'A4', margin: 50 });
+
+    // Set response headers for PDF download
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', 'attachment; filename="safedrive_report.pdf"');
+
+    // Pipe PDF document to response
+    doc.pipe(res);
+
+    // Title
+    doc.fontSize(20).text('SafeDrive Report', { align: 'center' });
+    doc.moveDown();
+
+    // Accidents section
+    doc.fontSize(16).text('Recent Accident Events', { underline: true });
+    doc.moveDown(0.5);
+
+    accidents.forEach((accident, index) => {
+      doc.fontSize(12).text(`${index + 1}. ID: ${accident.id}`);
+      doc.text(`   Alcohol: ${accident.alcohol}`);
+      doc.text(`   Impact: ${accident.impact}`);
+      doc.text(`   Seatbelt: ${accident.seatbelt ? 'Fastened' : 'Unfastened'}`);
+      doc.text(`   Location: (${accident.lat || 'N/A'}, ${accident.lng || 'N/A'})`);
+      doc.text(`   Timestamp: ${accident.timestamp}`);
+      doc.moveDown(0.5);
+    });
+
+    doc.addPage();
+
+    // Sensors section
+    doc.fontSize(16).text('Recent Sensor Data', { underline: true });
+    doc.moveDown(0.5);
+
+    sensors.forEach((sensor, index) => {
+      doc.fontSize(12).text(`${index + 1}. ID: ${sensor.id}`);
+      doc.text(`   Alcohol: ${sensor.alcohol}`);
+      doc.text(`   Impact: ${sensor.impact}`);
+      doc.text(`   Seatbelt: ${sensor.seatbelt ? 'Fastened' : 'Unfastened'}`);
+      doc.text(`   Distance: ${sensor.distance}`);
+      doc.text(`   Vibration: ${sensor.vibration}`);
+      doc.text(`   Heart Rate: ${sensor.heart_rate || 'N/A'}`);
+      doc.text(`   Timestamp: ${sensor.timestamp}`);
+      doc.moveDown(0.5);
+    });
+
+    // Finalize PDF and end the stream
+    doc.end();
+
+  } catch (err) {
+    console.error('Error generating PDF report:', err);
+    res.status(500).json({ error: 'Failed to generate PDF report', details: err.message });
+  }
+});
+
 app.listen(PORT, () => {
   console.log(`SafeDrive backend running on port ${PORT}`);
 });
