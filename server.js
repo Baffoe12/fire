@@ -401,75 +401,152 @@ app.post('/api/seed', requireApiKey, async (req, res) => {
   }
 });
 
+
+const ExcelJS = require('exceljs');
 const PDFDocument = require('pdfkit');
 
 // Serve static files from the React app 
 
-// PDF report generation endpoint
-app.get('/api/reports/pdf', async (req, res) => {
+// Excel report generation endpoints
+
+// Sensor data Excel
+app.get('/api/reports/sensor-excel', async (req, res) => {
   try {
-    // Fetch recent accident events and sensor data (limit to 50 for report)
-    const accidents = await AccidentEventModel.findAll({
-      order: [['timestamp', 'DESC']],
-      limit: 50
-    });
     const sensors = await SensorDataModel.findAll({
       order: [['timestamp', 'DESC']],
-      limit: 50
+      limit: 1000
     });
 
-    // Create a new PDF document
-    const doc = new PDFDocument({ size: 'A4', margin: 50 });
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet('Sensor Data');
 
-    // Set response headers for PDF download
-    res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', 'attachment; filename="safedrive_report.pdf"');
+    worksheet.columns = [
+      { header: 'ID', key: 'id', width: 15 },
+      { header: 'Alcohol', key: 'alcohol', width: 10 },
+      { header: 'Vibration', key: 'vibration', width: 10 },
+      { header: 'Distance', key: 'distance', width: 10 },
+      { header: 'Seatbelt', key: 'seatbelt', width: 10 },
+      { header: 'Impact', key: 'impact', width: 10 },
+      { header: 'Heart Rate', key: 'heart_rate', width: 10 },
+      { header: 'LCD Display', key: 'lcd_display', width: 20 },
+      { header: 'Timestamp', key: 'timestamp', width: 25 }
+    ];
 
-    // Pipe PDF document to response
-    doc.pipe(res);
-
-    // Title
-    doc.fontSize(20).text('SafeDrive Report', { align: 'center' });
-    doc.moveDown();
-
-    // Accidents section
-    doc.fontSize(16).text('Recent Accident Events', { underline: true });
-    doc.moveDown(0.5);
-
-    accidents.forEach((accident, index) => {
-      doc.fontSize(12).text(`${index + 1}. ID: ${accident.id}`);
-      doc.text(`   Alcohol: ${accident.alcohol}`);
-      doc.text(`   Impact: ${accident.impact}`);
-      doc.text(`   Seatbelt: ${accident.seatbelt ? 'Fastened' : 'Unfastened'}`);
-      doc.text(`   Location: (${accident.lat || 'N/A'}, ${accident.lng || 'N/A'})`);
-      doc.text(`   Timestamp: ${accident.timestamp}`);
-      doc.moveDown(0.5);
+    sensors.forEach(sensor => {
+      worksheet.addRow({
+        id: sensor.id,
+        alcohol: sensor.alcohol,
+        vibration: sensor.vibration,
+        distance: sensor.distance,
+        seatbelt: sensor.seatbelt ? 'Yes' : 'No',
+        impact: sensor.impact,
+        heart_rate: sensor.heart_rate || '',
+        lcd_display: sensor.lcd_display || '',
+        timestamp: sensor.timestamp
+      });
     });
 
-    doc.addPage();
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', 'attachment; filename="sensor_data.xlsx"');
 
-    // Sensors section
-    doc.fontSize(16).text('Recent Sensor Data', { underline: true });
-    doc.moveDown(0.5);
-
-    sensors.forEach((sensor, index) => {
-      doc.fontSize(12).text(`${index + 1}. ID: ${sensor.id}`);
-      doc.text(`   Alcohol: ${sensor.alcohol}`);
-      doc.text(`   Impact: ${sensor.impact}`);
-      doc.text(`   Seatbelt: ${sensor.seatbelt ? 'Fastened' : 'Unfastened'}`);
-      doc.text(`   Distance: ${sensor.distance}`);
-      doc.text(`   Vibration: ${sensor.vibration}`);
-      doc.text(`   Heart Rate: ${sensor.heart_rate || 'N/A'}`);
-      doc.text(`   Timestamp: ${sensor.timestamp}`);
-      doc.moveDown(0.5);
-    });
-
-    // Finalize PDF and end the stream
-    doc.end();
+    await workbook.xlsx.write(res);
+    res.end();
 
   } catch (err) {
-    console.error('Error generating PDF report:', err);
-    res.status(500).json({ error: 'Failed to generate PDF report', details: err.message });
+    console.error('Error generating sensor Excel report:', err);
+    res.status(500).json({ error: 'Failed to generate sensor Excel report', details: err.message });
+  }
+});
+
+// Accident events Excel
+app.get('/api/reports/accident-excel', async (req, res) => {
+  try {
+    const accidents = await AccidentEventModel.findAll({
+      order: [['timestamp', 'DESC']],
+      limit: 1000
+    });
+
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet('Accident Events');
+
+    worksheet.columns = [
+      { header: 'ID', key: 'id', width: 15 },
+      { header: 'Alcohol', key: 'alcohol', width: 10 },
+      { header: 'Vibration', key: 'vibration', width: 10 },
+      { header: 'Distance', key: 'distance', width: 10 },
+      { header: 'Seatbelt', key: 'seatbelt', width: 10 },
+      { header: 'Impact', key: 'impact', width: 10 },
+      { header: 'Latitude', key: 'lat', width: 15 },
+      { header: 'Longitude', key: 'lng', width: 15 },
+      { header: 'LCD Display', key: 'lcd_display', width: 20 },
+      { header: 'Timestamp', key: 'timestamp', width: 25 }
+    ];
+
+    accidents.forEach(accident => {
+      worksheet.addRow({
+        id: accident.id,
+        alcohol: accident.alcohol,
+        vibration: accident.vibration,
+        distance: accident.distance,
+        seatbelt: accident.seatbelt ? 'Yes' : 'No',
+        impact: accident.impact,
+        lat: accident.lat || '',
+        lng: accident.lng || '',
+        lcd_display: accident.lcd_display || '',
+        timestamp: accident.timestamp
+      });
+    });
+
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', 'attachment; filename="accident_events.xlsx"');
+
+    await workbook.xlsx.write(res);
+    res.end();
+
+  } catch (err) {
+    console.error('Error generating accident Excel report:', err);
+    res.status(500).json({ error: 'Failed to generate accident Excel report', details: err.message });
+  }
+});
+
+// Statistics report Excel
+app.get('/api/reports/stats-excel', async (req, res) => {
+  try {
+    // Aggregate statistics from database
+    const accidents = await AccidentEventModel.findAll();
+    const sensors = await SensorDataModel.findAll();
+
+    const total_accidents = accidents.length;
+    const max_alcohol = accidents.length > 0 ? Math.max(...accidents.map(a => a.alcohol || 0)) : 0;
+    const avg_alcohol = accidents.length > 0 ? accidents.reduce((sum, a) => sum + (a.alcohol || 0), 0) / accidents.length : 0;
+    const max_impact = accidents.length > 0 ? Math.max(...accidents.map(a => a.impact || 0)) : 0;
+    const seatbelt_violations = accidents.filter(a => a.seatbelt === false).length;
+    const total_sensor_points = sensors.length;
+
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet('Statistics Report');
+
+    worksheet.columns = [
+      { header: 'Metric', key: 'metric', width: 30 },
+      { header: 'Value', key: 'value', width: 20 }
+    ];
+
+    worksheet.addRow({ metric: 'Total Accidents', value: total_accidents });
+    worksheet.addRow({ metric: 'Max Alcohol Level', value: max_alcohol });
+    worksheet.addRow({ metric: 'Average Alcohol Level', value: avg_alcohol.toFixed(2) });
+    worksheet.addRow({ metric: 'Max Impact', value: max_impact });
+    worksheet.addRow({ metric: 'Seatbelt Violations', value: seatbelt_violations });
+    worksheet.addRow({ metric: 'Total Sensor Points', value: total_sensor_points });
+
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', 'attachment; filename="statistics_report.xlsx"');
+
+    await workbook.xlsx.write(res);
+    res.end();
+
+  } catch (err) {
+    console.error('Error generating statistics Excel report:', err);
+    res.status(500).json({ error: 'Failed to generate statistics Excel report', details: err.message });
   }
 });
 
