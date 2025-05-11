@@ -402,7 +402,6 @@ app.post('/api/seed', requireApiKey, async (req, res) => {
 });
 
 const PDFDocument = require('pdfkit');
-const { Op } = require('sequelize');
 
 // Serve static files from the React app 
 
