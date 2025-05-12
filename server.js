@@ -482,6 +482,139 @@ app.get('/api/reports/pdf', async (req, res) => {
   }
 });
 
+
+// Excel report generation endpoints
+
+// Accident events Excel report
+app.get('/api/reports/accident-excel', async (req, res) => {
+  try {
+    const accidents = await AccidentEventModel.findAll({
+      order: [['timestamp', 'DESC']],
+      limit: 1000
+    });
+
+    const workbook = new ExcelJS.Workbook();
+    const sheet = workbook.addWorksheet('Accident Events');
+
+    sheet.columns = [
+      { header: 'ID', key: 'id', width: 20 },
+      { header: 'Alcohol', key: 'alcohol', width: 10 },
+      { header: 'Impact', key: 'impact', width: 10 },
+      { header: 'Seatbelt', key: 'seatbelt', width: 10 },
+      { header: 'Latitude', key: 'lat', width: 15 },
+      { header: 'Longitude', key: 'lng', width: 15 },
+      { header: 'Timestamp', key: 'timestamp', width: 25 }
+    ];
+
+    accidents.forEach(accident => {
+      sheet.addRow({
+        id: accident.id,
+        alcohol: accident.alcohol,
+        impact: accident.impact,
+        seatbelt: accident.seatbelt ? 'Fastened' : 'Unfastened',
+        lat: accident.lat || 'N/A',
+        lng: accident.lng || 'N/A',
+        timestamp: accident.timestamp
+      });
+    });
+
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', 'attachment; filename="accident_events.xlsx"');
+
+    await workbook.xlsx.write(res);
+    res.end();
+  } catch (err) {
+    console.error('Error generating accident Excel report:', err);
+    res.status(500).json({ error: 'Failed to generate accident Excel report', details: err.message });
+  }
+});
+
+// Sensor data Excel report
+app.get('/api/reports/sensor-excel', async (req, res) => {
+  try {
+    const sensors = await SensorDataModel.findAll({
+      order: [['timestamp', 'DESC']],
+      limit: 1000
+    });
+
+    const workbook = new ExcelJS.Workbook();
+    const sheet = workbook.addWorksheet('Sensor Data');
+
+    sheet.columns = [
+      { header: 'ID', key: 'id', width: 20 },
+      { header: 'Alcohol', key: 'alcohol', width: 10 },
+      { header: 'Impact', key: 'impact', width: 10 },
+      { header: 'Seatbelt', key: 'seatbelt', width: 10 },
+      { header: 'Distance', key: 'distance', width: 10 },
+      { header: 'Vibration', key: 'vibration', width: 10 },
+      { header: 'Heart Rate', key: 'heart_rate', width: 10 },
+      { header: 'Timestamp', key: 'timestamp', width: 25 }
+    ];
+
+    sensors.forEach(sensor => {
+      sheet.addRow({
+        id: sensor.id,
+        alcohol: sensor.alcohol,
+        impact: sensor.impact,
+        seatbelt: sensor.seatbelt ? 'Fastened' : 'Unfastened',
+        distance: sensor.distance,
+        vibration: sensor.vibration,
+        heart_rate: sensor.heart_rate || 'N/A',
+        timestamp: sensor.timestamp
+      });
+    });
+
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', 'attachment; filename="sensor_data.xlsx"');
+
+    await workbook.xlsx.write(res);
+    res.end();
+  } catch (err) {
+    console.error('Error generating sensor Excel report:', err);
+    res.status(500).json({ error: 'Failed to generate sensor Excel report', details: err.message });
+  }
+});
+
+// Statistics Excel report
+app.get('/api/reports/stats-excel', async (req, res) => {
+  try {
+    // Gather statistics similar to /api/stats endpoint
+    const accidents = await AccidentEventModel.findAll();
+    const sensors = await SensorDataModel.findAll();
+
+    const total_accidents = accidents.length;
+    const max_alcohol = total_accidents > 0 ? Math.max(...accidents.map(a => a.alcohol || 0)) : 0;
+    const avg_alcohol = total_accidents > 0 ? accidents.reduce((sum, a) => sum + (a.alcohol || 0), 0) / total_accidents : 0;
+    const max_impact = total_accidents > 0 ? Math.max(...accidents.map(a => a.impact || 0)) : 0;
+    const seatbelt_violations = accidents.filter(a => a.seatbelt === false).length;
+    const total_sensor_points = sensors.length;
+
+    const workbook = new ExcelJS.Workbook();
+    const sheet = workbook.addWorksheet('Statistics');
+
+    sheet.columns = [
+      { header: 'Statistic', key: 'stat', width: 30 },
+      { header: 'Value', key: 'value', width: 20 }
+    ];
+
+    sheet.addRow({ stat: 'Total Accidents', value: total_accidents });
+    sheet.addRow({ stat: 'Max Alcohol Level', value: max_alcohol });
+    sheet.addRow({ stat: 'Average Alcohol Level', value: avg_alcohol });
+    sheet.addRow({ stat: 'Max Impact', value: max_impact });
+    sheet.addRow({ stat: 'Seatbelt Violations', value: seatbelt_violations });
+    sheet.addRow({ stat: 'Total Sensor Data Points', value: total_sensor_points });
+
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', 'attachment; filename="statistics_report.xlsx"');
+
+    await workbook.xlsx.write(res);
+    res.end();
+  } catch (err) {
+    console.error('Error generating statistics Excel report:', err);
+    res.status(500).json({ error: 'Failed to generate statistics Excel report', details: err.message });
+  }
+});
+
 app.listen(PORT, () => {
   console.log(`SafeDrive backend running on port ${PORT}`);
 });
