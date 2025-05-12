@@ -10,9 +10,11 @@ async function getWeatherData(lat, lng, timestamp) {
 
     // Fetch historical weather data for given location and time
     const url = OPENWEATHERMAP_BASE_URL + '/onecall/timemachine?lat=' + lat + '&lon=' + lng + '&dt=' + dt + '&appid=' + OPENWEATHERMAP_API_KEY + '&units=metric';
+    console.log('Fetching weather data from URL:', url);
 
     const response = await axios.get(url);
     if (response.status === 200) {
+      console.log('Weather data fetched successfully:', response.data);
       return response.data;
     } else {
       console.error('Failed to fetch weather data:', response.status, response.statusText);
