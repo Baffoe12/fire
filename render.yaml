@@ -1,0 +1,34 @@
+services:
+  # Backend API Service
+  - type: web
+    name: safedrive-pro-backend
+    env: node
+    buildCommand: npm install
+    startCommand: node server.js
+    rootDir: backend
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: SAFEDRIVE_API_KEY
+        value: safedrive_secret_key
+      - key: PORT
+        value: 10000
+      - key: DATABASE_URL
+        sync: false # Will be set from the dashboard
+
+  # Frontend Dashboard Service
+  - type: web
+    name: safedrive-pro-dashboard
+    env: static
+    rootDir: dashboard
+    buildCommand: npm install && npm run build
+    staticPublishPath: build
+    envVars:
+      - key: REACT_APP_API_URL
+        value: https://fire-h0u2.onrender.com
+
+# Database
+databases:
+  - name: safedrive-db
+    databaseName: safedrive
+    ipAllowList: [] # only allow internal connections
