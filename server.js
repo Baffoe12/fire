@@ -653,7 +653,8 @@ app.get('/api/predictive-risk', async (req, res) => {
     }
   } catch (err) {
     console.error('Error in predictive risk endpoint:', err);
-    res.status(500).json({ error: 'Internal server error' });
+    // Send detailed error message for debugging
+    res.status(500).json({ error: 'Internal server error', details: err.message });
   }
 });
 
