@@ -7,8 +7,9 @@
     "dialect": "sqlite",
     "storage": ":memory:"
   },
-  "production": {
-    "dialect": "sqlite",
-    "storage": "./prod.sqlite3"
-  }
+
+"production": {
+"dialect": "postgres",
+"use_env_variable": "DATABASE_URL"
+}
 }
