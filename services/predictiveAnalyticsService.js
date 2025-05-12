@@ -8,6 +8,11 @@ const environmentalDataService = require('./environmentalDataService');
 
 async function calculateRiskScore(lat, lng, timestamp) {
   try {
+    // Validate inputs
+    if (typeof lat !== 'number' || typeof lng !== 'number' || !timestamp) {
+      throw new Error('Invalid input parameters');
+    }
+
     // Fetch recent accident events near location and time window (e.g., last 7 days)
     const startTime = new Date(new Date(timestamp).getTime() - 7 * 24 * 60 * 60 * 1000);
     const endTime = new Date(timestamp);
@@ -56,7 +61,7 @@ async function calculateRiskScore(lat, lng, timestamp) {
     };
   } catch (error) {
     console.error('Error calculating risk score:', error);
-    return null;
+    throw error;  // Throw error to be handled by caller
   }
 }
 
