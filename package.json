@@ -1,23 +1,21 @@
 {
-  "name": "safedrive-backend",
+  "name": "backend",
   "version": "1.0.0",
-  "description": "SafeDrive backend server",
+  "description": "SafeDrive backend service",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js",
-    "build": "echo No build step required"
+    "start": "node server.js"
   },
   "dependencies": {
+    "axios": "^1.9.0",
     "cors": "^2.8.5",
     "dotenv": "^16.0.3",
-    "exceljs": "^4.4.0",
     "express": "^4.18.2",
     "morgan": "^1.10.0",
-    "nodemailer": "^6.9.1",
-    "pdfkit": "^0.17.1",
-    "pg": "^8.11.0",
-    "sequelize": "^6.31.1",
-    "sequelize-cli": "^6.6.3",
+    "nodemailer": "^6.9.3",
+    "pg": "^8.10.0",
+    "pg-hstore": "^2.3.4",
+    "sequelize": "^6.32.1",
     "sqlite3": "^5.1.6"
   }
 }
