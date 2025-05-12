@@ -615,6 +615,27 @@ app.get('/api/reports/stats-excel', async (req, res) => {
   }
 });
 
+const environmentalDataService = require('./services/environmentalDataService');
+
+// Environmental data API endpoint
+app.get('/api/environmental-data', async (req, res) => {
+  const { lat, lng, timestamp } = req.query;
+  if (!lat || !lng || !timestamp) {
+    return res.status(400).json({ error: 'Missing lat, lng, or timestamp query parameters' });
+  }
+  try {
+    const data = await environmentalDataService.getWeatherData(parseFloat(lat), parseFloat(lng), timestamp);
+    if (data) {
+      res.json(data);
+    } else {
+      res.status(500).json({ error: 'Failed to fetch environmental data' });
+    }
+  } catch (err) {
+    console.error('Error in environmental data endpoint:', err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 app.listen(PORT, () => {
   console.log(`SafeDrive backend running on port ${PORT}`);
 });
