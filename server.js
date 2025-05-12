@@ -9,13 +9,20 @@ const app = express();
 const PORT = process.env.PORT || 4000;
 
 const morgan = require('morgan');
+const fs = require('fs');
 
-// Add morgan middleware for logging HTTP requests with status codes
+// Create a write stream (in append mode) for logging
+const logStream = fs.createWriteStream('server.log', { flags: 'a' });
+
+// Add morgan middleware for logging HTTP requests with status codes to file and console
+app.use(morgan(':method :url :status :res[content-length] - :response-time ms', { stream: logStream }));
 app.use(morgan(':method :url :status :res[content-length] - :response-time ms'));
 
 // Add request logging middleware
 app.use((req, res, next) => {
-  console.log(`[${new Date().toISOString()}] ${req.method} ${req.originalUrl}`);
+  const logEntry = `[${new Date().toISOString()}] ${req.method} ${req.originalUrl}\n`;
+  logStream.write(logEntry);
+  console.log(logEntry.trim());
   next();
 });
 
