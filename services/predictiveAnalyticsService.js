@@ -1,7 +1,9 @@
 const { Op } = require('sequelize');
-const AccidentEventModel = require('../models/AccidentEvent');
-const SensorDataModel = require('../models/SensorData');
+const db = require('../models');
 const environmentalDataService = require('./environmentalDataService');
+
+const AccidentEventModel = db.AccidentEvent;
+const SensorDataModel = db.SensorData;
 
 // Placeholder for predictive analytics logic
 // This example uses simple heuristics; replace with ML models as needed
