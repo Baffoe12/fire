@@ -1,34 +1,28 @@
 const axios = require('axios');
 
+const WEATHERAPI_KEY = process.env.WEATHERAPI_KEY;
+const WEATHERAPI_BASE_URL = 'http://api.weatherapi.com/v1';
+
 async function getWeatherData(lat, lng, timestamp) {
   try {
-    // MetaWeather API requires location woeid, so first get location info by lat/lng
-    const locationSearchUrl = `http://www.metaweather.com/api/location/search/?lattlong=${lat},${lng}`;
-    console.log('Fetching location info from MetaWeather:', locationSearchUrl);
-    const locationResponse = await axios.get(locationSearchUrl);
-    if (locationResponse.status !== 200 || locationResponse.data.length === 0) {
-      console.error('Failed to get location info from MetaWeather');
-      return null;
-    }
-    const woeid = locationResponse.data[0].woeid;
-    console.log('Found WOEID:', woeid);
+    // WeatherAPI.com historical weather endpoint requires date in yyyy-MM-dd format
+    const date = new Date(timestamp).toISOString().split('T')[0];
+    const url = `${WEATHERAPI_BASE_URL}/history.json?key=${WEATHERAPI_KEY}&q=${lat},${lng}&dt=${date}`;
+    console.log('Fetching weather data from WeatherAPI:', url);
 
-    // Fetch weather data for the location
-    const weatherUrl = `http://www.metaweather.com/api/location/${woeid}/`;
-    console.log('Fetching weather data from MetaWeather:', weatherUrl);
-    const weatherResponse = await axios.get(weatherUrl);
-    if (weatherResponse.status === 200) {
-      console.log('Weather data fetched successfully from MetaWeather:', weatherResponse.data);
-      return weatherResponse.data;
+    const response = await axios.get(url);
+    if (response.status === 200) {
+      console.log('Weather data fetched successfully from WeatherAPI:', response.data);
+      return response.data;
     } else {
-      console.error('Failed to fetch weather data from MetaWeather:', weatherResponse.status, weatherResponse.statusText);
+      console.error('Failed to fetch weather data from WeatherAPI:', response.status, response.statusText);
       return null;
     }
   } catch (error) {
     if (error.response) {
-      console.error('Error fetching weather data from MetaWeather:', error.response.status, error.response.data);
+      console.error('Error fetching weather data from WeatherAPI:', error.response.status, error.response.data);
     } else {
-      console.error('Error fetching weather data from MetaWeather:', error.message);
+      console.error('Error fetching weather data from WeatherAPI:', error.message);
     }
     return null;
   }
