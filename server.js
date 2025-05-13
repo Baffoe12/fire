@@ -392,8 +392,7 @@ const accidentSeeder = require('./seeders/20250423201000-demo-accident-event');
 const sensorSeeder = require('./seeders/20250423201300-demo-sensor-data');
 const additionalSensorSeeder = require('./seeders/20250423201400-additional-sensor-data');
 
-// API endpoint to trigger seeders programmatically (secured with API key)
-app.post('/api/seed', requireApiKey, async (req, res) => {
+app.post('/api/seed', async (req, res) => {
   try {
     // Run accident seeder
     await accidentSeeder.up(sequelize.getQueryInterface(), Sequelize);
