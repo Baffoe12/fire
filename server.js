@@ -14,6 +14,9 @@ const fs = require('fs');
 // Create a write stream (in append mode) for logging
 const logStream = fs.createWriteStream('server.log', { flags: 'a' });
 
+// Create a separate write stream for error logging
+const errorLogStream = fs.createWriteStream('error.log', { flags: 'a' });
+
 // Add morgan middleware for logging HTTP requests with status codes to file and console
 app.use(morgan(':method :url :status :res[content-length] - :response-time ms', { stream: logStream }));
 app.use(morgan(':method :url :status :res[content-length] - :response-time ms'));
@@ -662,4 +665,11 @@ app.get('/api/predictive-risk', async (req, res) => {
 
 app.listen(PORT, () => {
   console.log(`SafeDrive backend running on port ${PORT}`);
+});
+
+// Centralized error-handling middleware
+app.use((err, req, res, next) => {
+  console.error('Unhandled error:', err.stack || err);
+  errorLogStream.write(`[${new Date().toISOString()}] Unhandled error: ${err.stack || err}\n`);
+  res.status(500).json({ error: 'Internal server error' });
 });
