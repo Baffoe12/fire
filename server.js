@@ -623,10 +623,13 @@ app.get('/api/environmental-data', async (req, res) => {
     return res.status(400).json({ error: 'Missing lat, lng, or timestamp query parameters' });
   }
   try {
+    console.log(`Received environmental data request with lat=${lat}, lng=${lng}, timestamp=${timestamp}`);
     const data = await environmentalDataService.getWeatherData(parseFloat(lat), parseFloat(lng), timestamp);
     if (data) {
+      console.log('Environmental data fetched successfully');
       res.json(data);
     } else {
+      console.error('Failed to fetch environmental data');
       res.status(500).json({ error: 'Failed to fetch environmental data' });
     }
   } catch (err) {

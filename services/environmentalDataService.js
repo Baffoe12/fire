@@ -8,6 +8,9 @@ async function getWeatherData(lat, lng, timestamp) {
     // OpenWeatherMap One Call API requires unix timestamp in seconds
     const dt = Math.floor(new Date(timestamp).getTime() / 1000);
 
+    // Log the API key being used for debugging
+    console.log('Using OpenWeatherMap API key:', OPENWEATHERMAP_API_KEY);
+
     // Fetch historical weather data for given location and time
     const url = OPENWEATHERMAP_BASE_URL + '/onecall/timemachine?lat=' + lat + '&lon=' + lng + '&dt=' + dt + '&appid=' + OPENWEATHERMAP_API_KEY + '&units=metric';
     console.log('Fetching weather data from URL:', url);
