@@ -4,7 +4,6 @@ const cors = require('cors');
 const { Sequelize, Op } = require('sequelize');
 const nodemailer = require('nodemailer');
 const path = require('path');
-
 const app = express();
 const PORT = process.env.PORT || 4000;
 
@@ -362,24 +361,44 @@ app.get('/api/accident/:id', async (req, res) => {
   }
 });
 
+/**
+ * Emergency alert email sending endpoint.
+ * Requires environment variables:
+ *   EMAIL_USER - email address used to send emails
+ *   EMAIL_PASS - password or app-specific password for the email account
+ *   EMERGENCY_CONTACT_EMAIL - default recipient email if none provided in request
+ */
+
+const emailUser = process.env.EMAIL_USER;
+const emailPass = process.env.EMAIL_PASS;
+const emergencyContactEmail = process.env.EMERGENCY_CONTACT_EMAIL;
+
+if (!emailUser || !emailPass) {
+  console.error('ERROR: EMAIL_USER and EMAIL_PASS environment variables must be set for email sending.');
+}
+
+const transporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: emailUser,
+    pass: emailPass
+  }
+});
+
 app.post('/api/emergency-alert', async (req, res) => {
   const { email, latitude, longitude } = req.body;
-  if (!email || !latitude || !longitude) {
-    return res.status(400).json({ error: 'Missing email or location data' });
+  if (!latitude || !longitude) {
+    return res.status(400).json({ error: 'Missing location data (latitude or longitude)' });
+  }
+  // Use provided email or fallback to emergency contact email
+  const recipientEmail = email || emergencyContactEmail;
+  if (!recipientEmail) {
+    return res.status(400).json({ error: 'No recipient email provided and EMERGENCY_CONTACT_EMAIL is not set' });
   }
 
-  // Configure transporter (use environment variables for real credentials)
-  const transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-      user: process.env.EMAIL_USER || 'aw3469029@gmail.com',
-      pass: process.env.EMAIL_PASS || 'lxdo bbic opae gjlc'
-    }
-  });
-
   const mailOptions = {
-    from: process.env.EMAIL_USER || 'aw3469029@gmail.com',
-    to: email,
+    from: emailUser,
+    to: recipientEmail,
     subject: 'SafeDrive Emergency Alert',
     text: `An emergency alert has been triggered.\nLocation: https://www.google.com/maps?q=${latitude},${longitude}\nPlease respond immediately.`
   };
