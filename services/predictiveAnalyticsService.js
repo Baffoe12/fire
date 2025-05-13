@@ -50,6 +50,8 @@ async function calculateRiskScore(lat, lng, timestamp) {
       if (weatherMain.includes('rain') || weatherMain.includes('storm') || weatherMain.includes('snow')) {
         riskScore += 20; // increase risk for bad weather
       }
+    } else {
+      throw new Error('Weather data is missing or malformed');
     }
 
     // Normalize risk score to 0-100 scale
