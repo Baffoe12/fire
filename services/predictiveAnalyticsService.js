@@ -51,11 +51,17 @@ async function calculateRiskScore(lat, lng, timestamp) {
     riskScore += accidents.length * 10; // weight accidents count
     riskScore += sensors.length * 2;    // weight sensor events count
 
-    if (weatherData && weatherData.current && weatherData.current.condition) {
-      const weatherMain = weatherData.current.condition.text.toLowerCase();
-      if (weatherMain.includes('rain') || weatherMain.includes('storm') || weatherMain.includes('snow')) {
-        riskScore += 20; // increase risk for bad weather
+    let weatherConditionText = 'Unknown';
+    if (weatherData) {
+      if (weatherData.current && weatherData.current.condition) {
+        weatherConditionText = weatherData.current.condition.text;
+      } else if (weatherData.forecast && weatherData.forecast.forecastday && weatherData.forecast.forecastday.length > 0) {
+        weatherConditionText = weatherData.forecast.forecastday[0].day.condition.text;
       }
+    }
+    const weatherMain = weatherConditionText.toLowerCase();
+    if (weatherMain.includes('rain') || weatherMain.includes('storm') || weatherMain.includes('snow')) {
+      riskScore += 20; // increase risk for bad weather
     } else {
       console.warn('Weather data is missing or malformed, proceeding without weather adjustment');
     }
@@ -67,8 +73,8 @@ async function calculateRiskScore(lat, lng, timestamp) {
       riskScore,
       accidentsCount: accidents.length,
       sensorEventsCount: sensors.length,
-      weatherCondition: weatherData && weatherData.current && weatherData.current.condition ? weatherData.current.condition.text : 'Unknown'
-  };
+      weatherCondition: weatherConditionText
+    };
   } catch (error) {
     console.error('Error calculating risk score:', error);
     throw error;  // Throw error to be handled by caller
