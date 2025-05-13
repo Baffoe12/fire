@@ -67,8 +67,8 @@ async function calculateRiskScore(lat, lng, timestamp) {
       riskScore,
       accidentsCount: accidents.length,
       sensorEventsCount: sensors.length,
-      weatherCondition: weatherData ? weatherData.current.weather[0].description : 'Unknown'
-    };
+      weatherCondition: weatherData && weatherData.current && weatherData.current.condition ? weatherData.current.condition.text : 'Unknown'
+  };
   } catch (error) {
     console.error('Error calculating risk score:', error);
     throw error;  // Throw error to be handled by caller
