@@ -37,7 +37,13 @@ async function calculateRiskScore(lat, lng, timestamp) {
     });
 
     // Fetch environmental data
-    const weatherData = await environmentalDataService.getWeatherData(lat, lng, timestamp);
+    let weatherData;
+    try {
+      weatherData = await environmentalDataService.getWeatherData(lat, lng, timestamp);
+    } catch (err) {
+      console.error('Failed to fetch weather data:', err);
+      weatherData = null;
+    }
 
     // Simple risk score calculation based on counts and weather conditions
     let riskScore = 0;
@@ -45,13 +51,13 @@ async function calculateRiskScore(lat, lng, timestamp) {
     riskScore += accidents.length * 10; // weight accidents count
     riskScore += sensors.length * 2;    // weight sensor events count
 
-    if (weatherData && weatherData.current && weatherData.current.weather) {
-      const weatherMain = weatherData.current.weather[0].main.toLowerCase();
+    if (weatherData && weatherData.current && weatherData.current.condition) {
+      const weatherMain = weatherData.current.condition.text.toLowerCase();
       if (weatherMain.includes('rain') || weatherMain.includes('storm') || weatherMain.includes('snow')) {
         riskScore += 20; // increase risk for bad weather
       }
     } else {
-      throw new Error('Weather data is missing or malformed');
+      console.warn('Weather data is missing or malformed, proceeding without weather adjustment');
     }
 
     // Normalize risk score to 0-100 scale
