@@ -3,7 +3,7 @@ const axios = require('axios');
 async function getWeatherData(lat, lng, timestamp) {
   try {
     // MetaWeather API requires location woeid, so first get location info by lat/lng
-    const locationSearchUrl = `https://www.metaweather.com/api/location/search/?lattlong=${lat},${lng}`;
+    const locationSearchUrl = `http://www.metaweather.com/api/location/search/?lattlong=${lat},${lng}`;
     console.log('Fetching location info from MetaWeather:', locationSearchUrl);
     const locationResponse = await axios.get(locationSearchUrl);
     if (locationResponse.status !== 200 || locationResponse.data.length === 0) {
@@ -14,7 +14,7 @@ async function getWeatherData(lat, lng, timestamp) {
     console.log('Found WOEID:', woeid);
 
     // Fetch weather data for the location
-    const weatherUrl = `https://www.metaweather.com/api/location/${woeid}/`;
+    const weatherUrl = `http://www.metaweather.com/api/location/${woeid}/`;
     console.log('Fetching weather data from MetaWeather:', weatherUrl);
     const weatherResponse = await axios.get(weatherUrl);
     if (weatherResponse.status === 200) {
