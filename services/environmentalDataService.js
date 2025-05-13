@@ -1,6 +1,6 @@
 const axios = require('axios');
 
-const OPENWEATHERMAP_API_KEY = process.env.OPENWEATHERMAP_API_KEY || 'your_openweathermap_api_key';
+const OPENWEATHERMAP_API_KEY = process.env.OPENWEATHERMAP_API_KEY;
 const OPENWEATHERMAP_BASE_URL = 'https://api.openweathermap.org/data/2.5';
 
 async function getWeatherData(lat, lng, timestamp) {
@@ -24,7 +24,11 @@ async function getWeatherData(lat, lng, timestamp) {
       return null;
     }
   } catch (error) {
-    console.error('Error fetching weather data:', error.message);
+    if (error.response) {
+      console.error('Error fetching weather data:', error.response.status, error.response.data);
+    } else {
+      console.error('Error fetching weather data:', error.message);
+    }
     return null;
   }
 }
