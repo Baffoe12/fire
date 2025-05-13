@@ -150,7 +150,8 @@ app.get('/api/stats', async (req, res) => {
       total_sensor_points: sensors.length
     };
     
-    res.json(stats);
+    // Fix: Return valid JSON with commas between fields
+    res.json(JSON.parse(JSON.stringify(stats)));
   } catch (err) {
     console.error('Database error in stats endpoint:', err);
     // Return mock data if database fails
