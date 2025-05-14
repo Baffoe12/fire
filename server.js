@@ -194,14 +194,26 @@ const API_KEY = process.env.SAFEDRIVE_API_KEY || "safedrive_secret_key"; // Chan
 // --- Input Validation ---
 function isValidSensorData(data) {
   if (!data) return false;
-  return typeof data.alcohol === 'number' &&
+  return typeof data.device_id === 'string' &&
+         typeof data.timestamp === 'number' &&
+         typeof data.alcohol === 'number' &&
          typeof data.vibration === 'number' &&
          typeof data.distance === 'number' &&
          typeof data.seatbelt === 'boolean' &&
          typeof data.impact === 'number' &&
+         typeof data.pulse === 'number' &&
          (data.lat === undefined || typeof data.lat === 'number') &&
          (data.lng === undefined || typeof data.lng === 'number') &&
-         (data.lcd_display === undefined || typeof data.lcd_display === 'string');
+         (data.lcd_display === undefined || typeof data.lcd_display === 'string') &&
+         typeof data.current_pulse === 'number' &&
+         typeof data.pulse_threshold_min === 'number' &&
+         typeof data.pulse_threshold_max === 'number' &&
+         Array.isArray(data.pulse_data) &&
+         Array.isArray(data.pulse_history) &&
+         Array.isArray(data.distance_history) &&
+         Array.isArray(data.alcohol_history) &&
+         Array.isArray(data.impact_history) &&
+         Array.isArray(data.vibration_history);
 }
 
 function isValidAccidentData(data) {
