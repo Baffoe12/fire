@@ -255,9 +255,12 @@ function requireApiKey(req, res, next) {
     return next();
   }
   const key = req.headers['x-api-key'] || req.query.api_key;
+  console.log(`[API Key Middleware] Received key: ${key}, Expected key: ${API_KEY}`);
   if (!key || key !== API_KEY) {
+    console.log('[API Key Middleware] Unauthorized access attempt');
     return res.status(401).json({ error: 'Unauthorized: Invalid API Key' });
   }
+  console.log('[API Key Middleware] API key validated successfully');
   next();
 }
 
