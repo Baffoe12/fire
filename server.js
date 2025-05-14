@@ -436,9 +436,175 @@ const predictiveAnalyticsService = require('./services/predictiveAnalyticsServic
 
 const emergencyAlertLog = fs.createWriteStream('emergency_alerts.log', { flags: 'a' });
 
+const ExcelJS = require('exceljs');
+const PDFDocument = require('pdfkit');
+
 // Test route to verify body parsing works correctly
 app.post('/api/test-body', (req, res) => {
   res.json({ receivedBody: req.body });
+});
+
+// Route to generate and download PDF report
+app.get('/api/reports/pdf', async (req, res) => {
+  try {
+    const doc = new PDFDocument();
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', 'attachment; filename="safedrive_report.pdf"');
+    doc.pipe(res);
+
+    doc.fontSize(20).text('SafeDrive Report', { align: 'center' });
+    doc.moveDown();
+
+    // Add some sample content or summary
+    doc.fontSize(14).text('This is a generated PDF report for SafeDrive.', { align: 'left' });
+    doc.moveDown();
+
+    // Add timestamp
+    doc.fontSize(10).text(`Generated on: ${new Date().toLocaleString()}`, { align: 'right' });
+
+    doc.end();
+  } catch (err) {
+    console.error('Error generating PDF report:', err);
+    res.status(500).json({ error: 'Failed to generate PDF report' });
+  }
+});
+
+// Route to generate and download sensor data Excel report
+app.get('/api/reports/sensor-excel', async (req, res) => {
+  try {
+    const sensorData = await SensorDataModel.findAll();
+
+    const workbook = new ExcelJS.Workbook();
+    const sheet = workbook.addWorksheet('Sensor Data');
+
+    // Define columns
+    sheet.columns = [
+      { header: 'ID', key: 'id', width: 10 },
+      { header: 'Device ID', key: 'device_id', width: 20 },
+      { header: 'Timestamp', key: 'timestamp', width: 25 },
+      { header: 'Alcohol', key: 'alcohol', width: 10 },
+      { header: 'Vibration', key: 'vibration', width: 10 },
+      { header: 'Distance', key: 'distance', width: 10 },
+      { header: 'Seatbelt', key: 'seatbelt', width: 10 },
+      { header: 'Impact', key: 'impact', width: 10 },
+      { header: 'Pulse', key: 'pulse', width: 10 },
+      { header: 'Latitude', key: 'lat', width: 15 },
+      { header: 'Longitude', key: 'lng', width: 15 }
+    ];
+
+    // Add rows
+    sensorData.forEach(data => {
+      sheet.addRow({
+        id: data.id,
+        device_id: data.device_id,
+        timestamp: data.timestamp,
+        alcohol: data.alcohol,
+        vibration: data.vibration,
+        distance: data.distance,
+        seatbelt: data.seatbelt,
+        impact: data.impact,
+        pulse: data.pulse,
+        lat: data.lat,
+        lng: data.lng
+      });
+    });
+
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', 'attachment; filename="sensor_data.xlsx"');
+
+    await workbook.xlsx.write(res);
+    res.end();
+  } catch (err) {
+    console.error('Error generating sensor Excel report:', err);
+    res.status(500).json({ error: 'Failed to generate sensor Excel report' });
+  }
+});
+
+// Route to generate and download accident data Excel report
+app.get('/api/reports/accident-excel', async (req, res) => {
+  try {
+    const accidentData = await AccidentEventModel.findAll();
+
+    const workbook = new ExcelJS.Workbook();
+    const sheet = workbook.addWorksheet('Accident Data');
+
+    // Define columns
+    sheet.columns = [
+      { header: 'ID', key: 'id', width: 10 },
+      { header: 'Timestamp', key: 'timestamp', width: 25 },
+      { header: 'Alcohol', key: 'alcohol', width: 10 },
+      { header: 'Vibration', key: 'vibration', width: 10 },
+      { header: 'Distance', key: 'distance', width: 10 },
+      { header: 'Seatbelt', key: 'seatbelt', width: 10 },
+      { header: 'Impact', key: 'impact', width: 10 },
+      { header: 'Latitude', key: 'lat', width: 15 },
+      { header: 'Longitude', key: 'lng', width: 15 }
+    ];
+
+    // Add rows
+    accidentData.forEach(data => {
+      sheet.addRow({
+        id: data.id,
+        timestamp: data.timestamp,
+        alcohol: data.alcohol,
+        vibration: data.vibration,
+        distance: data.distance,
+        seatbelt: data.seatbelt,
+        impact: data.impact,
+        lat: data.lat,
+        lng: data.lng
+      });
+    });
+
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', 'attachment; filename="accident_data.xlsx"');
+
+    await workbook.xlsx.write(res);
+    res.end();
+  } catch (err) {
+    console.error('Error generating accident Excel report:', err);
+    res.status(500).json({ error: 'Failed to generate accident Excel report' });
+  }
+});
+
+// Route to generate and download statistics Excel report
+app.get('/api/reports/stats-excel', async (req, res) => {
+  try {
+    // Calculate statistics
+    const accidents = await AccidentEventModel.findAll();
+    const sensors = await SensorDataModel.findAll();
+
+    const totalAccidents = accidents.length;
+    const maxAlcohol = accidents.length > 0 ? Math.max(...accidents.map(a => a.alcohol || 0)) : 0;
+    const avgAlcohol = accidents.length > 0 ? accidents.reduce((sum, a) => sum + (a.alcohol || 0), 0) / accidents.length : 0;
+    const maxImpact = accidents.length > 0 ? Math.max(...accidents.map(a => a.impact || 0)) : 0;
+    const seatbeltViolations = accidents.filter(a => a.seatbelt === false).length;
+    const totalSensorPoints = sensors.length;
+
+    const workbook = new ExcelJS.Workbook();
+    const sheet = workbook.addWorksheet('Statistics');
+
+    sheet.columns = [
+      { header: 'Statistic', key: 'stat', width: 30 },
+      { header: 'Value', key: 'value', width: 20 }
+    ];
+
+    sheet.addRow({ stat: 'Total Accidents', value: totalAccidents });
+    sheet.addRow({ stat: 'Max Alcohol Level', value: maxAlcohol });
+    sheet.addRow({ stat: 'Average Alcohol Level', value: avgAlcohol.toFixed(2) });
+    sheet.addRow({ stat: 'Max Impact Level', value: maxImpact });
+    sheet.addRow({ stat: 'Seatbelt Violations', value: seatbeltViolations });
+    sheet.addRow({ stat: 'Total Sensor Data Points', value: totalSensorPoints });
+
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', 'attachment; filename="statistics_report.xlsx"');
+
+    await workbook.xlsx.write(res);
+    res.end();
+  } catch (err) {
+    console.error('Error generating statistics Excel report:', err);
+    res.status(500).json({ error: 'Failed to generate statistics Excel report' });
+  }
 });
 
 // Emergency alert ingestion endpoint
