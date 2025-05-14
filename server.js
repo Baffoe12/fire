@@ -118,8 +118,8 @@ const corsOptions = {
   origin: process.env.NODE_ENV === 'production'
     ? ['https://safedrive-pro.netlify.app']  // Your production frontend URL
     : ['http://localhost:3000', 'http://localhost:3001'], // Development URLs
-  methods: ['GET', 'POST'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
+  methods: ['GET', 'POST', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-API-Key'],
   credentials: true
 };
 
