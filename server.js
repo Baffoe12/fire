@@ -250,6 +250,10 @@ function isValidAccidentData(data) {
 
 // --- API Key Middleware ---
 function requireApiKey(req, res, next) {
+  if (req.method === 'OPTIONS') {
+    // Skip API key check for preflight requests
+    return next();
+  }
   const key = req.headers['x-api-key'] || req.query.api_key;
   if (!key || key !== API_KEY) {
     return res.status(401).json({ error: 'Unauthorized: Invalid API Key' });
