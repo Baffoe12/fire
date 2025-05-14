@@ -142,10 +142,6 @@ app.use((req, res, next) => {
 
 const bodyParser = require('body-parser');
 
-/* Remove duplicate require of body-parser */
-/* Removed duplicate require of body-parser */
-const bodyParser = require('body-parser');
-
 // Ensure JSON body parsing middleware is applied before all routes
 app.use(bodyParser.json());
 
