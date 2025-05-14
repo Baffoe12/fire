@@ -193,6 +193,7 @@ const API_KEY = process.env.SAFEDRIVE_API_KEY || "safedrive_secret_key"; // Chan
 
 // --- Input Validation ---
 function isValidSensorData(data) {
+  if (!data) return false;
   return typeof data.alcohol === 'number' &&
          typeof data.vibration === 'number' &&
          typeof data.distance === 'number' &&
