@@ -145,11 +145,19 @@ const bodyParser = require('body-parser');
 // Ensure JSON body parsing middleware is applied before all routes
 app.use(bodyParser.json());
 
-// Debug middleware to log request body for /api/sensor POST
+// Middleware to log Content-Type and raw body for POST /api/sensor for debugging
 app.use('/api/sensor', (req, res, next) => {
   console.log('Request headers:', req.headers);
-  console.log('Request body:', req.body);
-  next();
+  console.log('Content-Type:', req.headers['content-type']);
+  let rawData = '';
+  req.on('data', chunk => {
+    rawData += chunk;
+  });
+  req.on('end', () => {
+    console.log('Raw request body:', rawData);
+    console.log('Parsed request body:', req.body);
+    next();
+  });
 });
 
 // Database setup
