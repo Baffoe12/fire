@@ -116,7 +116,7 @@ app.post('/api/accident', requireApiKey, async (req, res) => {
 
 const corsOptions = {
   origin: process.env.NODE_ENV === 'production'
-    ? ['https://safedrive-pro.netlify.app']  // Your production frontend URL
+    ? 'https://safedrive-pro.netlify.app'  // Your production frontend URL
     : ['http://localhost:3000', 'http://localhost:3001'], // Development URLs
   methods: ['GET', 'POST', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-API-Key'],
@@ -127,7 +127,11 @@ app.use(cors(corsOptions));
 
 // Add CORS headers manually to fix missing Access-Control-Allow-Origin
 app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', '*'); // Allow all origins or specify your frontend URL
+  const allowedOrigins = ['https://safedrive-pro.netlify.app', 'http://localhost:3000', 'http://localhost:3001'];
+  const origin = req.headers.origin;
+  if (allowedOrigins.includes(origin)) {
+    res.header('Access-Control-Allow-Origin', origin);
+  }
   res.header('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS');
   res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-API-Key');
   if (req.method === 'OPTIONS') {
