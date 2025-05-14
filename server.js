@@ -145,19 +145,16 @@ const bodyParser = require('body-parser');
 // Ensure JSON body parsing middleware is applied before all routes
 app.use(bodyParser.json());
 
-// Middleware to log Content-Type and raw body for POST /api/sensor for debugging
+// Remove raw body logging middleware to avoid consuming request stream before body-parser
+// Instead, rely on body-parser and Content-Type validation middleware
+
+// Middleware to validate Content-Type header for JSON requests
 app.use('/api/sensor', (req, res, next) => {
-  console.log('Request headers:', req.headers);
-  console.log('Content-Type:', req.headers['content-type']);
-  let rawData = '';
-  req.on('data', chunk => {
-    rawData += chunk;
-  });
-  req.on('end', () => {
-    console.log('Raw request body:', rawData);
-    console.log('Parsed request body:', req.body);
-    next();
-  });
+  const contentType = req.headers['content-type'];
+  if (!contentType || !contentType.includes('application/json')) {
+    return res.status(400).json({ error: 'Content-Type must be application/json' });
+  }
+  next();
 });
 
 // Database setup
