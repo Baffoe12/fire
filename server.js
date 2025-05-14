@@ -291,7 +291,7 @@ app.get('/api/stats', async (req, res) => {
     };
     
     // Fix: Return valid JSON with commas between fields
-    res.json(JSON.parse(JSON.stringify(stats)));
+    res.json(stats);
   } catch (err) {
     console.error('Database error in stats endpoint:', err);
     // Return mock data if database fails
