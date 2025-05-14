@@ -671,6 +671,22 @@ app.listen(PORT, () => {
   console.log(`SafeDrive backend running on port ${PORT}`);
 });
 
+// Add API endpoint to run seeders remotely (protected by API key)
+const { exec } = require('child_process');
+app.post('/api/run-seeders', requireApiKey, (req, res) => {
+  exec('npx sequelize-cli db:seed:all', (error, stdout, stderr) => {
+    if (error) {
+      console.error(`Seeder execution error: ${error.message}`);
+      return res.status(500).json({ error: 'Seeder execution failed', details: error.message });
+    }
+    if (stderr) {
+      console.error(`Seeder execution stderr: ${stderr}`);
+    }
+    console.log(`Seeder execution stdout: ${stdout}`);
+    res.json({ status: 'ok', message: 'Seeders executed successfully' });
+  });
+});
+
 // Centralized error-handling middleware
 app.use((err, req, res, next) => {
   console.error('Unhandled error:', err.stack || err);
