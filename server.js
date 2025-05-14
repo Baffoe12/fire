@@ -63,13 +63,14 @@ app.post('/api/sensor', requireApiKey, async (req, res) => {
       const transporter = nodemailer.createTransport({
         service: 'gmail',
         auth: {
-          user: process.env.EMAIL_USER || 'your_email@gmail.com',
-          pass: process.env.EMAIL_PASS || 'your_email_password'
+           user: process.env.EMAIL_USER || 'aw3469029@gmail.com',
+           pass: process.env.EMAIL_PASS || 'lxdo bbic opae gjlc'
+
         }
       });
 
       const mailOptions = {
-        from: process.env.EMAIL_USER || 'your_email@gmail.com',
+        from: process.env.EMAIL_USER || 'aw3469029@gmail.com',
         to: process.env.EMERGENCY_CONTACT_EMAIL || 'emergency_contact@example.com',
         subject: 'SafeDrive Emergency Alert',
         text: `Critical sensor data detected:\nAlcohol Level: ${data.alcohol}\nImpact: ${data.impact}\nTimestamp: ${data.timestamp}`
@@ -418,9 +419,24 @@ app.use('/api/sensor', (req, res, next) => {
 
 const predictiveAnalyticsService = require('./services/predictiveAnalyticsService');
 
+const emergencyAlertLog = fs.createWriteStream('emergency_alerts.log', { flags: 'a' });
+
 // Test route to verify body parsing works correctly
 app.post('/api/test-body', (req, res) => {
   res.json({ receivedBody: req.body });
+});
+
+// Emergency alert ingestion endpoint
+app.post('/api/emergency-alert', requireApiKey, (req, res) => {
+  const alertData = req.body;
+  if (!alertData || typeof alertData !== 'object') {
+    return res.status(400).json({ error: 'Invalid emergency alert data' });
+  }
+  const logEntry = `[${new Date().toISOString()}] Emergency alert received: ${JSON.stringify(alertData)}\n`;
+  emergencyAlertLog.write(logEntry);
+  console.log(logEntry.trim());
+  // Additional processing can be added here (e.g., notify services)
+  res.json({ status: 'ok', message: 'Emergency alert received' });
 });
 
 // Predictive analytics risk score API endpoint
