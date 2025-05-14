@@ -142,7 +142,7 @@ app.use((req, res, next) => {
 
 const bodyParser = require('body-parser');
 
-// Parse JSON request bodies
+// Ensure JSON body parsing middleware is applied before all routes
 app.use(bodyParser.json());
 
 // Database setup
