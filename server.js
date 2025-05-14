@@ -141,6 +141,9 @@ app.use((req, res, next) => {
   next();
 });
 
+// Fix: Add OPTIONS preflight handler for all routes to respond with CORS headers
+app.options('*', cors(corsOptions));
+
 const bodyParser = require('body-parser');
 
 // Ensure JSON body parsing middleware is applied before all routes
