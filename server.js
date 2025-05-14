@@ -463,7 +463,7 @@ app.post('/api/emergency-alert', requireApiKey, (req, res) => {
     from: process.env.EMAIL_USER || 'aw3469029@gmail.com',
     to: recipientEmail,
     subject: 'SafeDrive Emergency Alert',
-    text: `Emergency alert received with the following details:\n${JSON.stringify(alertData, null, 2)}\n\nCoordinates:\nLatitude: ${alertData.latitude}\nLongitude: ${alertData.longitude}`
+    text: `Emergency alert received with the following details:\n${JSON.stringify(alertData, null, 2)}\n\nCoordinates:\nLatitude: ${alertData.latitude}\nLongitude: ${alertData.longitude}\n\nGoogle Maps Link: https://www.google.com/maps/search/?api=1&query=${alertData.latitude},${alertData.longitude}`
   };
 
   transporter.sendMail(mailOptions, (error, info) => {
