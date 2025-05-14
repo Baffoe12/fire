@@ -396,7 +396,7 @@ app.post('/api/sensor', requireApiKey, async (req, res) => {
         service: 'gmail',
         auth: {
          user: process.env.EMAIL_USER || 'aw3469029@gmail.com',
-pass: process.env.EMAIL_PASS || 'lxdo bbic opae gjlc'
+              pass: process.env.EMAIL_PASS || 'lxdo bbic opae gjlc'
 
         }
       });
@@ -456,38 +456,17 @@ app.get('/api/accident/:id', async (req, res) => {
  *   EMERGENCY_CONTACT_EMAIL - default recipient email if none provided in request
  */
 
-const emailUser = process.env.EMAIL_USER;
-const emailPass = process.env.EMAIL_PASS;
-const emergencyContactEmail = process.env.EMERGENCY_CONTACT_EMAIL;
+const emailUser = process.env.EMAIL_USER || 'aw3469029@gmail.com';
+const emailPass = process.env.EMAIL_PASS || 'lxdo bbic opae gjlc';
+const emergencyContactEmail = process.env.EMERGENCY_CONTACT_EMAIL || 'emergency_contact@example.com';
 
-if (!emailUser || !emailPass) {
-  console.error('ERROR: EMAIL_USER and EMAIL_PASS environment variables must be set for email sending.');
-  console.error('Please set these environment variables in your deployment environment.');
-  console.error('Example:');
-  console.error('  EMAIL_USER=your_email@gmail.com');
-  console.error('  EMAIL_PASS=your_email_password_or_app_password');
-  console.error('Without these, emergency alert emails will not be sent.');
-}
-
-let transporter = null;
-if (emailUser && emailPass) {
-  transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-      user: emailUser,
-      pass: emailPass
-    }
-  });
-} else {
-  // Disable email sending if credentials are missing
-  transporter = {
-    sendMail: (options, callback) => {
-      const errorMsg = 'Email sending disabled: missing EMAIL_USER or EMAIL_PASS environment variables.';
-      console.error(errorMsg);
-      if (callback) callback(new Error(errorMsg));
-    }
-  };
-}
+let transporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: emailUser,
+    pass: emailPass
+  }
+});
 
 app.post('/api/emergency-alert', async (req, res) => {
   const { email, latitude, longitude } = req.body;
