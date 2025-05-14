@@ -140,8 +140,10 @@ app.use((req, res, next) => {
   next();
 });
 
+const bodyParser = require('body-parser');
+
 // Parse JSON request bodies
-app.use(express.json());
+app.use(bodyParser.json());
 
 // Database setup
 let sequelize;
