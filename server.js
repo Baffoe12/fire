@@ -28,6 +28,92 @@ app.use((req, res, next) => {
   next();
 });
 
+// Enhanced logging for sensor and accident data ingestion
+const logDataIngestion = (type, data) => {
+  const logEntry = `[${new Date().toISOString()}] ${type} data received: ${JSON.stringify(data)}\n`;
+  logStream.write(logEntry);
+  console.log(logEntry.trim());
+};
+
+// Modify /api/sensor endpoint to add ingestion logging
+app.post('/api/sensor', requireApiKey, async (req, res) => {
+  const data = req.body;
+  logDataIngestion('Sensor', data);
+  if (!isValidSensorData(data)) {
+    const errorMsg = 'Invalid sensor data';
+    logStream.write(`[${new Date().toISOString()}] ERROR: ${errorMsg} - ${JSON.stringify(data)}\n`);
+    console.error(errorMsg, data);
+    return res.status(400).json({ error: errorMsg });
+  }
+  data.timestamp = new Date();
+  try {
+    const sensorEntry = await SensorDataModel.create(data);
+
+    // Check for critical thresholds to trigger emergency alert
+    const criticalAlcoholLevel = 0.6; // example threshold
+    const criticalImpactLevel = 2.0;  // example threshold
+
+    if (data.alcohol > criticalAlcoholLevel || data.impact > criticalImpactLevel) {
+      console.log('Emergency alert triggered due to critical sensor data:', data);
+
+      // Example: Send email notification using nodemailer (requires setup)
+      const nodemailer = require('nodemailer');
+
+      // Configure transporter (use environment variables for real credentials)
+      const transporter = nodemailer.createTransport({
+        service: 'gmail',
+        auth: {
+          user: process.env.EMAIL_USER || 'your_email@gmail.com',
+          pass: process.env.EMAIL_PASS || 'your_email_password'
+        }
+      });
+
+      const mailOptions = {
+        from: process.env.EMAIL_USER || 'your_email@gmail.com',
+        to: process.env.EMERGENCY_CONTACT_EMAIL || 'emergency_contact@example.com',
+        subject: 'SafeDrive Emergency Alert',
+        text: `Critical sensor data detected:\nAlcohol Level: ${data.alcohol}\nImpact: ${data.impact}\nTimestamp: ${data.timestamp}`
+      };
+
+      transporter.sendMail(mailOptions, (error, info) => {
+        if (error) {
+          console.error('Error sending emergency alert email:', error);
+        } else {
+          console.log('Emergency alert email sent:', info.response);
+        }
+      });
+    }
+
+    res.json({ status: 'ok', id: sensorEntry.id });
+  } catch (err) {
+    logStream.write(`[${new Date().toISOString()}] ERROR: Database error - ${err.message}\n`);
+    console.error('Database error:', err);
+    res.status(500).json({ error: 'Database error', details: err.message });
+  }
+});
+
+// Modify /api/accident endpoint to add ingestion logging
+app.post('/api/accident', requireApiKey, async (req, res) => {
+  const data = req.body;
+  logDataIngestion('Accident', data);
+  if (!isValidAccidentData(data)) {
+    const errorMsg = 'Invalid accident data';
+    logStream.write(`[${new Date().toISOString()}] ERROR: ${errorMsg} - ${JSON.stringify(data)}\n`);
+    console.error(errorMsg, data);
+    return res.status(400).json({ error: errorMsg });
+  }
+  data.timestamp = new Date();
+  data.id = Date.now().toString(36) + Math.random().toString(36).substr(2, 5);
+  try {
+    const accidentEntry = await AccidentEventModel.create(data);
+    res.json({ status: 'ok', id: accidentEntry.id });
+  } catch (err) {
+    logStream.write(`[${new Date().toISOString()}] ERROR: Database error - ${err.message}\n`);
+    console.error('Database error:', err);
+    res.status(500).json({ error: 'Database error', details: err.message });
+  }
+});
+
 const corsOptions = {
   origin: process.env.NODE_ENV === 'production'
     ? ['https://safedrive-pro.netlify.app']  // Your production frontend URL
@@ -309,13 +395,14 @@ app.post('/api/sensor', requireApiKey, async (req, res) => {
       const transporter = nodemailer.createTransport({
         service: 'gmail',
         auth: {
-          user: process.env.EMAIL_USER || 'your_email@gmail.com',
-          pass: process.env.EMAIL_PASS || 'your_email_password'
+         user: process.env.EMAIL_USER || 'aw3469029@gmail.com',
+pass: process.env.EMAIL_PASS || 'lxdo bbic opae gjlc'
+
         }
       });
 
       const mailOptions = {
-        from: process.env.EMAIL_USER || 'your_email@gmail.com',
+        from: process.env.EMAIL_USER || 'aw3469029@gmail.com',
         to: process.env.EMERGENCY_CONTACT_EMAIL || 'emergency_contact@example.com',
         subject: 'SafeDrive Emergency Alert',
         text: `Critical sensor data detected:\nAlcohol Level: ${data.alcohol}\nImpact: ${data.impact}\nTimestamp: ${data.timestamp}`
@@ -375,15 +462,32 @@ const emergencyContactEmail = process.env.EMERGENCY_CONTACT_EMAIL;
 
 if (!emailUser || !emailPass) {
   console.error('ERROR: EMAIL_USER and EMAIL_PASS environment variables must be set for email sending.');
+  console.error('Please set these environment variables in your deployment environment.');
+  console.error('Example:');
+  console.error('  EMAIL_USER=your_email@gmail.com');
+  console.error('  EMAIL_PASS=your_email_password_or_app_password');
+  console.error('Without these, emergency alert emails will not be sent.');
 }
 
-const transporter = nodemailer.createTransport({
-  service: 'gmail',
-  auth: {
-    user: emailUser,
-    pass: emailPass
-  }
-});
+let transporter = null;
+if (emailUser && emailPass) {
+  transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+      user: emailUser,
+      pass: emailPass
+    }
+  });
+} else {
+  // Disable email sending if credentials are missing
+  transporter = {
+    sendMail: (options, callback) => {
+      const errorMsg = 'Email sending disabled: missing EMAIL_USER or EMAIL_PASS environment variables.';
+      console.error(errorMsg);
+      if (callback) callback(new Error(errorMsg));
+    }
+  };
+}
 
 app.post('/api/emergency-alert', async (req, res) => {
   const { email, latitude, longitude } = req.body;
