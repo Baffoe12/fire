@@ -381,7 +381,11 @@ app.get('/api/car/position', async (req, res) => {
 // Receive sensor data (live updates, with API key)
 app.post('/api/sensor', requireApiKey, async (req, res) => {
   const data = req.body;
-  if (!isValidSensorData(data)) return res.status(400).json({ error: 'Invalid sensor data' });
+  console.log('Raw sensor data received:', JSON.stringify(data)); // Add detailed logging
+  if (!isValidSensorData(data)) {
+    console.error('Invalid sensor data:', JSON.stringify(data));
+    return res.status(400).json({ error: 'Invalid sensor data' });
+  }
   data.timestamp = new Date();
   try {
     const sensorEntry = await SensorDataModel.create(data);
