@@ -325,13 +325,18 @@ app.get('/api/sensor', async (req, res) => {
 
 // Fallback map endpoint that doesn't require database
 app.get('/api/map', async (req, res) => {
-  const accidents = await AccidentEventModel.findAll({ 
-    where: { 
-      lat: { [Op.ne]: null }, 
-      lng: { [Op.ne]: null } 
-    } 
-  });
-  res.json(accidents.map(e => ({ id: e.id, lat: e.lat, lng: e.lng, timestamp: e.timestamp })));
+  try {
+    const accidents = await AccidentEventModel.findAll({ 
+      where: { 
+        lat: { [Op.ne]: null }, 
+        lng: { [Op.ne]: null } 
+      } 
+    });
+    res.json(accidents.map(e => ({ id: e.id, lat: e.lat, lng: e.lng, timestamp: e.timestamp })));
+  } catch (err) {
+    console.error('Database error in map endpoint:', err);
+    res.status(500).json({ error: 'Database error', details: err.message });
+  }
 });
 
 // Get sensor history
