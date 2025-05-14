@@ -418,6 +418,20 @@ app.get('/api/car/position', async (req, res) => {
   }
 });
 
+// Middleware to validate Content-Type header for JSON requests
+app.use('/api/sensor', (req, res, next) => {
+  const contentType = req.headers['content-type'];
+  if (!contentType || !contentType.includes('application/json')) {
+    return res.status(400).json({ error: 'Content-Type must be application/json' });
+  }
+  next();
+});
+
+// Test route to verify body parsing works correctly
+app.post('/api/test-body', (req, res) => {
+  res.json({ receivedBody: req.body });
+});
+
 // Receive sensor data (live updates, with API key)
 app.post('/api/sensor', requireApiKey, async (req, res) => {
   const data = req.body;
