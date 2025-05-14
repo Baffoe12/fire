@@ -447,7 +447,35 @@ app.post('/api/emergency-alert', requireApiKey, (req, res) => {
   const logEntry = `[${new Date().toISOString()}] Emergency alert received: ${JSON.stringify(alertData)}\n`;
   emergencyAlertLog.write(logEntry);
   console.log(logEntry.trim());
-  // Additional processing can be added here (e.g., notify services)
+
+  // Send email notification using nodemailer
+  const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+      user: process.env.EMAIL_USER || 'aw3469029@gmail.com',
+      pass: process.env.EMAIL_PASS || 'lxdo bbic opae gjlc'
+    }
+  });
+
+  const recipientEmail = alertData.email || process.env.EMERGENCY_CONTACT_EMAIL || 'emergency_contact@example.com';
+
+  const mailOptions = {
+    from: process.env.EMAIL_USER || 'aw3469029@gmail.com',
+    to: recipientEmail,
+    subject: 'SafeDrive Emergency Alert',
+    text: `Emergency alert received with the following details:\n${JSON.stringify(alertData, null, 2)}`
+  };
+
+  transporter.sendMail(mailOptions, (error, info) => {
+    if (error) {
+      console.error('Error sending emergency alert email:', error);
+      emergencyAlertLog.write(`[${new Date().toISOString()}] ERROR sending email: ${error}\n`);
+    } else {
+      console.log('Emergency alert email sent:', info.response);
+      emergencyAlertLog.write(`[${new Date().toISOString()}] Email sent: ${info.response}\n`);
+    }
+  });
+
   res.json({ status: 'ok', message: 'Emergency alert received' });
 });
 
