@@ -204,7 +204,7 @@ const API_KEY = process.env.SAFEDRIVE_API_KEY || "safedrive_secret_key"; // Chan
 function isValidSensorData(data) {
   if (!data) return false;
   return typeof data.device_id === 'string' &&
-         typeof data.timestamp === 'number' &&
+         (typeof data.timestamp === 'number' || typeof data.timestamp === 'string') &&
          typeof data.alcohol === 'number' &&
          typeof data.vibration === 'number' &&
          typeof data.distance === 'number' &&
@@ -405,7 +405,8 @@ app.post('/api/sensor', requireApiKey, async (req, res) => {
   console.log('Raw sensor data received:', JSON.stringify(data)); // Add detailed logging
   if (!isValidSensorData(data)) {
     console.error('Invalid sensor data:', JSON.stringify(data));
-    return res.status(400).json({ error: 'Invalid sensor data' });
+    // Add detailed error response for debugging
+    return res.status(400).json({ error: 'Invalid sensor data', receivedData: data });
   }
   data.timestamp = new Date();
   try {
