@@ -416,9 +416,30 @@ app.use('/api/sensor', (req, res, next) => {
   next();
 });
 
+const predictiveAnalyticsService = require('./services/predictiveAnalyticsService');
+
 // Test route to verify body parsing works correctly
 app.post('/api/test-body', (req, res) => {
   res.json({ receivedBody: req.body });
+});
+
+// Predictive analytics risk score API endpoint
+app.get('/api/predictive-risk', async (req, res) => {
+  const { lat, lng, timestamp } = req.query;
+  if (!lat || !lng || !timestamp) {
+    return res.status(400).json({ error: 'Missing lat, lng, or timestamp query parameters' });
+  }
+  try {
+    const riskData = await predictiveAnalyticsService.calculateRiskScore(parseFloat(lat), parseFloat(lng), timestamp);
+    if (riskData) {
+      res.json(riskData);
+    } else {
+      res.status(500).json({ error: 'Failed to calculate risk score' });
+    }
+  } catch (err) {
+    console.error('Error in predictive risk endpoint:', err);
+    res.status(500).json({ error: 'Internal server error', details: err.message });
+  }
 });
 
 app.listen(PORT, () => {
