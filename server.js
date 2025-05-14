@@ -142,15 +142,17 @@ app.use((req, res, next) => {
 
 const bodyParser = require('body-parser');
 
+const bodyParser = require('body-parser');
+
+// Ensure JSON body parsing middleware is applied before all routes
+app.use(bodyParser.json());
+
 // Debug middleware to log request body for /api/sensor POST
-app.post('/api/sensor', (req, res, next) => {
+app.use('/api/sensor', (req, res, next) => {
   console.log('Request headers:', req.headers);
   console.log('Request body:', req.body);
   next();
 });
-
-// Ensure JSON body parsing middleware is applied before all routes
-app.use(bodyParser.json());
 
 // Database setup
 let sequelize;
