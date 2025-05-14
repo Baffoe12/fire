@@ -1,0 +1,4 @@
+[2025-05-13T09:01:12.843Z] GET /api/predictive-risk?lat=5.6545&lng=-0.1869&timestamp=2025-05-01T12:00:00Z
+GET /api/predictive-risk?lat=5.6545&lng=-0.1869&timestamp=2025-05-01T12:00:00Z 500 90 - 43.616 ms
+[2025-05-13T11:42:35.447Z] GET /api/environmental-data?lat=5.6545&lng=-0.1869&timestamp=2025-05-13T11:00:00Z
+GET /api/environmental-data?lat=5.6545&lng=-0.1869&timestamp=2025-05-13T11:00:00Z 500 46 - 779.810 ms
