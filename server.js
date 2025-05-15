@@ -17,9 +17,8 @@ const logStream = fs.createWriteStream('server.log', { flags: 'a' });
 const errorLogStream = fs.createWriteStream('error.log', { flags: 'a' });
 
 // Use body-parser once and apply JSON parsing middleware before all routes
-/* Removed duplicate bodyParser declaration and usage to fix syntax error */
-
-// app.use(bodyParser.json());
+const bodyParser = require('body-parser');
+app.use(bodyParser.json());
 
 // Add morgan middleware for logging HTTP requests with status codes to file and console
 app.use(morgan(':method :url :status :res[content-length] - :response-time ms', { stream: logStream }));
