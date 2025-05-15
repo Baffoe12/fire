@@ -149,10 +149,10 @@ app.use((req, res, next) => {
 // Fix: Add OPTIONS preflight handler for all routes to respond with CORS headers
 app.options('*', cors(corsOptions));
 
-const bodyParser = require('body-parser');
+/* Removed duplicate bodyParser declaration and usage to fix syntax error */
 
 // Ensure JSON body parsing middleware is applied before all routes
-app.use(bodyParser.json());
+// app.use(bodyParser.json());
 
 // Remove raw body logging middleware to avoid consuming request stream before body-parser
 // Instead, rely on body-parser and Content-Type validation middleware
