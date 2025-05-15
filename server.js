@@ -16,6 +16,11 @@ const logStream = fs.createWriteStream('server.log', { flags: 'a' });
 // Create a separate write stream for error logging
 const errorLogStream = fs.createWriteStream('error.log', { flags: 'a' });
 
+const bodyParser = require('body-parser');
+
+// Ensure JSON body parsing middleware is applied before all routes
+app.use(bodyParser.json());
+
 // Add morgan middleware for logging HTTP requests with status codes to file and console
 app.use(morgan(':method :url :status :res[content-length] - :response-time ms', { stream: logStream }));
 app.use(morgan(':method :url :status :res[content-length] - :response-time ms'));
@@ -214,37 +219,108 @@ const API_KEY = process.env.SAFEDRIVE_API_KEY || "safedrive_secret_key"; // Chan
 
 // --- Input Validation ---
 function isValidSensorData(data) {
-  if (!data) return false;
+  if (!data) {
+    console.error('Validation failed: data is undefined or null');
+    return false;
+  }
 
   // Helper to check array elements are numbers or empty arrays
   function isValidNumberArray(arr) {
-    if (!Array.isArray(arr)) return false;
+    if (!Array.isArray(arr)) {
+      console.error('Validation failed: expected array but got', typeof arr);
+      return false;
+    }
     for (const item of arr) {
-      if (typeof item !== 'number') return false;
+      if (typeof item !== 'number') {
+        console.error('Validation failed: array item is not a number:', item);
+        return false;
+      }
     }
     return true;
   }
 
-  return typeof data.device_id === 'string' &&
-         (typeof data.timestamp === 'number' || typeof data.timestamp === 'string') &&
-         typeof data.alcohol === 'number' &&
-         typeof data.vibration === 'number' &&
-         typeof data.distance === 'number' &&
-         typeof data.seatbelt === 'boolean' &&
-         typeof data.impact === 'number' &&
-         typeof data.pulse === 'number' &&
-         (data.lat === undefined || typeof data.lat === 'number') &&
-         (data.lng === undefined || typeof data.lng === 'number') &&
-         (data.lcd_display === undefined || typeof data.lcd_display === 'string') &&
-         typeof data.current_pulse === 'number' &&
-         typeof data.pulse_threshold_min === 'number' &&
-         typeof data.pulse_threshold_max === 'number' &&
-         (Array.isArray(data.pulse_data) || data.pulse_data === undefined) &&
-         isValidNumberArray(data.pulse_history) &&
-         isValidNumberArray(data.distance_history) &&
-         isValidNumberArray(data.alcohol_history) &&
-         isValidNumberArray(data.impact_history) &&
-         isValidNumberArray(data.vibration_history);
+  if (typeof data.device_id !== 'string') {
+    console.error('Validation failed: device_id is not string:', data.device_id);
+    return false;
+  }
+  if (typeof data.timestamp !== 'number' && typeof data.timestamp !== 'string') {
+    console.error('Validation failed: timestamp is not number or string:', data.timestamp);
+    return false;
+  }
+  if (typeof data.alcohol !== 'number') {
+    console.error('Validation failed: alcohol is not number:', data.alcohol);
+    return false;
+  }
+  if (typeof data.vibration !== 'number') {
+    console.error('Validation failed: vibration is not number:', data.vibration);
+    return false;
+  }
+  if (typeof data.distance !== 'number') {
+    console.error('Validation failed: distance is not number:', data.distance);
+    return false;
+  }
+  if (typeof data.seatbelt !== 'boolean') {
+    console.error('Validation failed: seatbelt is not boolean:', data.seatbelt);
+    return false;
+  }
+  if (typeof data.impact !== 'number') {
+    console.error('Validation failed: impact is not number:', data.impact);
+    return false;
+  }
+  if (typeof data.pulse !== 'number') {
+    console.error('Validation failed: pulse is not number:', data.pulse);
+    return false;
+  }
+  if (data.lat !== undefined && typeof data.lat !== 'number') {
+    console.error('Validation failed: lat is not number:', data.lat);
+    return false;
+  }
+  if (data.lng !== undefined && typeof data.lng !== 'number') {
+    console.error('Validation failed: lng is not number:', data.lng);
+    return false;
+  }
+  if (data.lcd_display !== undefined && typeof data.lcd_display !== 'string') {
+    console.error('Validation failed: lcd_display is not string:', data.lcd_display);
+    return false;
+  }
+  if (typeof data.current_pulse !== 'number') {
+    console.error('Validation failed: current_pulse is not number:', data.current_pulse);
+    return false;
+  }
+  if (typeof data.pulse_threshold_min !== 'number') {
+    console.error('Validation failed: pulse_threshold_min is not number:', data.pulse_threshold_min);
+    return false;
+  }
+  if (typeof data.pulse_threshold_max !== 'number') {
+    console.error('Validation failed: pulse_threshold_max is not number:', data.pulse_threshold_max);
+    return false;
+  }
+  if (data.pulse_data !== undefined && !Array.isArray(data.pulse_data)) {
+    console.error('Validation failed: pulse_data is not array:', data.pulse_data);
+    return false;
+  }
+  if (!isValidNumberArray(data.pulse_history)) {
+    console.error('Validation failed: pulse_history invalid:', data.pulse_history);
+    return false;
+  }
+  if (!isValidNumberArray(data.distance_history)) {
+    console.error('Validation failed: distance_history invalid:', data.distance_history);
+    return false;
+  }
+  if (!isValidNumberArray(data.alcohol_history)) {
+    console.error('Validation failed: alcohol_history invalid:', data.alcohol_history);
+    return false;
+  }
+  if (!isValidNumberArray(data.impact_history)) {
+    console.error('Validation failed: impact_history invalid:', data.impact_history);
+    return false;
+  }
+  if (!isValidNumberArray(data.vibration_history)) {
+    console.error('Validation failed: vibration_history invalid:', data.vibration_history);
+    return false;
+  }
+
+  return true;
 }
 
 function isValidAccidentData(data) {
