@@ -215,12 +215,11 @@ const API_KEY = process.env.SAFEDRIVE_API_KEY || "safedrive_secret_key"; // Chan
 function isValidSensorData(data) {
   if (!data) return false;
 
-  // Helper to check array elements are objects or empty objects
-  function isValidArray(arr) {
+  // Helper to check array elements are numbers or empty arrays
+  function isValidNumberArray(arr) {
     if (!Array.isArray(arr)) return false;
     for (const item of arr) {
-      if (typeof item !== 'object' || item === null) return false;
-      // Allow empty objects by skipping key checks
+      if (typeof item !== 'number') return false;
     }
     return true;
   }
@@ -239,12 +238,12 @@ function isValidSensorData(data) {
          typeof data.current_pulse === 'number' &&
          typeof data.pulse_threshold_min === 'number' &&
          typeof data.pulse_threshold_max === 'number' &&
-         isValidArray(data.pulse_data) &&
-         isValidArray(data.pulse_history) &&
-         isValidArray(data.distance_history) &&
-         isValidArray(data.alcohol_history) &&
-         isValidArray(data.impact_history) &&
-         isValidArray(data.vibration_history);
+         (Array.isArray(data.pulse_data) || data.pulse_data === undefined) &&
+         isValidNumberArray(data.pulse_history) &&
+         isValidNumberArray(data.distance_history) &&
+         isValidNumberArray(data.alcohol_history) &&
+         isValidNumberArray(data.impact_history) &&
+         isValidNumberArray(data.vibration_history);
 }
 
 function isValidAccidentData(data) {
