@@ -37,6 +37,7 @@ const logDataIngestion = (type, data) => {
 
 // Modify /api/sensor endpoint to add ingestion logging
 app.post('/api/sensor', requireApiKey, async (req, res) => {
+  console.log('Received /api/sensor POST body:', req.body);
   const data = req.body;
   logDataIngestion('Sensor', data);
   if (!isValidSensorData(data)) {
