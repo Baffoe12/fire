@@ -421,6 +421,11 @@ app.get('/api/car/position', async (req, res) => {
   }
 });
 
+const bodyParser = require('body-parser');
+
+// Ensure JSON body parsing middleware is applied before all routes
+app.use(bodyParser.json());
+
 // Middleware to validate Content-Type header for JSON POST requests only
 app.use('/api/sensor', (req, res, next) => {
   if (req.method === 'POST') {
