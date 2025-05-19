@@ -266,7 +266,8 @@ function isValidSensorData(data) {
     console.error('Validation failed: impact is not number:', data.impact);
     return false;
   }
-  if (typeof data.pulse !== 'number') {
+  // pulse is optional, so check only if defined
+  if (data.pulse !== undefined && typeof data.pulse !== 'number') {
     console.error('Validation failed: pulse is not number:', data.pulse);
     return false;
   }
