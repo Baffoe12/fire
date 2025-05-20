@@ -388,7 +388,10 @@ app.get('/api/sensor', async (req, res) => {
     // Try to get latest sensor data from database
     const latest = await SensorDataModel.findOne({ order: [['createdAt', 'DESC']] });
     if (latest) {
-      res.json(latest);
+      // Convert to JSON and rename pulse to heart_rate for frontend compatibility
+      const latestJson = latest.toJSON();
+      latestJson.heart_rate = latestJson.pulse !== undefined ? latestJson.pulse : (latestJson.current_pulse || 0);
+      res.json(latestJson);
     } else {
       throw new Error('No sensor data found');
     }
