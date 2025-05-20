@@ -382,7 +382,6 @@ app.get('/api/stats', async (req, res) => {
   }
 });
 
-// Fallback sensor endpoint that doesn't require database
 app.get('/api/sensor', async (req, res) => {
   try {
     // Try to get latest sensor data from database
@@ -390,7 +389,17 @@ app.get('/api/sensor', async (req, res) => {
     if (latest) {
       // Convert to JSON and rename pulse to heart_rate for frontend compatibility
       const latestJson = latest.toJSON();
+
+      // Debug log for pulse and current_pulse values
+      console.log(`Latest sensor data pulse: ${latestJson.pulse}, current_pulse: ${latestJson.current_pulse}`);
+
       latestJson.heart_rate = latestJson.pulse !== undefined ? latestJson.pulse : (latestJson.current_pulse || 0);
+
+      // Set headers to prevent caching
+      res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+      res.setHeader('Pragma', 'no-cache');
+      res.setHeader('Expires', '0');
+
       res.json(latestJson);
     } else {
       throw new Error('No sensor data found');
