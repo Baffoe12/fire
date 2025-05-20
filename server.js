@@ -390,8 +390,8 @@ app.get('/api/sensor', async (req, res) => {
       // Convert to JSON and rename pulse to heart_rate for frontend compatibility
       const latestJson = latest.toJSON();
 
-      // Debug log for pulse and current_pulse values
-      console.log(`Latest sensor data pulse: ${latestJson.pulse}, current_pulse: ${latestJson.current_pulse}`);
+      // Debug log for pulse, current_pulse, and createdAt values
+      console.log(`Latest sensor data createdAt: ${latestJson.createdAt}, pulse: ${latestJson.pulse}, current_pulse: ${latestJson.current_pulse}`);
 
       latestJson.heart_rate = latestJson.pulse !== undefined ? latestJson.pulse : (latestJson.current_pulse || 0);
 
