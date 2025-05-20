@@ -299,7 +299,7 @@ function isValidSensorData(data) {
     console.error('Validation failed: pulse_data is not array:', data.pulse_data);
     return false;
   }
-  if (!isValidNumberArray(data.pulse_history)) {
+  if (data.pulse_history !== undefined && !isValidNumberArray(data.pulse_history)) {
     console.error('Validation failed: pulse_history invalid:', data.pulse_history);
     return false;
   }
