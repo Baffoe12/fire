@@ -43,6 +43,10 @@ const logDataIngestion = (type, data) => {
 app.post('/api/sensor', requireApiKey, async (req, res) => {
   console.log('Received /api/sensor POST body:', req.body);
   const data = req.body;
+
+  // Set heart_rate field from pulse or current_pulse before saving
+  data.heart_rate = data.pulse || data.current_pulse || 0;
+
   logDataIngestion('Sensor', data);
   if (!isValidSensorData(data)) {
     const errorMsg = 'Invalid sensor data';
