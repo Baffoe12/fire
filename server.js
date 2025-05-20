@@ -42,6 +42,10 @@ const logDataIngestion = (type, data) => {
 // Modify /api/sensor endpoint to add ingestion logging
 app.post('/api/sensor', requireApiKey, async (req, res) => {
   console.log('Received /api/sensor POST body:', req.body);
+
+  // Log pulse and current_pulse values from incoming data
+  console.log(`Incoming pulse: ${req.body.pulse}, current_pulse: ${req.body.current_pulse}`);
+
   const data = req.body;
 
   // Set heart_rate field from pulse or current_pulse before saving
