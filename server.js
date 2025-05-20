@@ -395,13 +395,11 @@ app.get('/api/sensor', async (req, res) => {
     // Try to get latest sensor data from database
     const latest = await SensorDataModel.findOne({ order: [['createdAt', 'DESC']] });
     if (latest) {
-      // Convert to JSON and rename pulse to heart_rate for frontend compatibility
+      // Convert to JSON
       const latestJson = latest.toJSON();
 
-      // Debug log for pulse, current_pulse, and createdAt values
-      console.log(`Latest sensor data createdAt: ${latestJson.createdAt}, pulse: ${latestJson.pulse}, current_pulse: ${latestJson.current_pulse}`);
-
-      latestJson.heart_rate = latestJson.pulse !== undefined ? latestJson.pulse : (latestJson.current_pulse || 0);
+      // Debug log for createdAt and heart_rate values
+      console.log(`Latest sensor data createdAt: ${latestJson.createdAt}, heart_rate: ${latestJson.heart_rate}`);
 
       // Set headers to prevent caching
       res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
