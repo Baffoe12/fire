@@ -69,33 +69,42 @@ app.post('/api/sensor', requireApiKey, async (req, res) => {
     if (data.alcohol > criticalAlcoholLevel || data.impact > criticalImpactLevel) {
       console.log('Emergency alert triggered due to critical sensor data:', data);
 
-      // Example: Send email notification using nodemailer (requires setup)
-      const nodemailer = require('nodemailer');
+const nodemailer = require('nodemailer');
 
-      // Configure transporter (use environment variables for real credentials)
-      const transporter = nodemailer.createTransport({
-        service: 'gmail',
-        auth: {
-           user: process.env.EMAIL_USER || 'aw3469029@gmail.com',
-           pass: process.env.EMAIL_PASS || 'lxdo bbic opae gjlc'
+// Configure transporter (use environment variables for real credentials)
+const transporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+     user: process.env.EMAIL_USER || 'aw3469029@gmail.com',
+     pass: process.env.EMAIL_PASS || 'lxdo bbic opae gjlc'
 
-        }
-      });
+  }
+});
 
-      const mailOptions = {
-        from: process.env.EMAIL_USER || 'aw3469029@gmail.com',
-        to: process.env.EMERGENCY_CONTACT_EMAIL || 'emergency_contact@example.com',
-        subject: 'SafeDrive Emergency Alert',
-        text: `Critical sensor data detected:\nAlcohol Level: ${data.alcohol}\nImpact: ${data.impact}\nTimestamp: ${data.timestamp}`
-      };
+const mailOptions = {
+  from: process.env.EMAIL_USER || 'aw3469029@gmail.com',
+  to: process.env.EMERGENCY_CONTACT_EMAIL || 'emergency_contact@example.com',
+  subject: 'SafeDrive Emergency Alert',
+  text: `Critical sensor data detected:\nAlcohol Level: ${data.alcohol}\nImpact: ${data.impact}\nTimestamp: ${data.timestamp}`
+};
 
-      transporter.sendMail(mailOptions, (error, info) => {
-        if (error) {
-          console.error('Error sending emergency alert email:', error);
-        } else {
-          console.log('Emergency alert email sent:', info.response);
-        }
-      });
+// Implement simple rate limiting for email sending to avoid Gmail limits
+const EMAIL_RATE_LIMIT_MS = 60 * 60 * 1000; // 1 hour
+let lastEmailSentTime = 0;
+
+const now = Date.now();
+if (now - lastEmailSentTime > EMAIL_RATE_LIMIT_MS) {
+  transporter.sendMail(mailOptions, (error, info) => {
+    if (error) {
+      console.error('Error sending emergency alert email:', error);
+    } else {
+      console.log('Emergency alert email sent:', info.response);
+      lastEmailSentTime = now;
+    }
+  });
+} else {
+  console.log('Email rate limit exceeded, skipping emergency alert email');
+}
     }
 
     res.json({ status: 'ok', id: sensorEntry.id });
@@ -128,9 +137,10 @@ app.post('/api/accident', requireApiKey, async (req, res) => {
   }
 });
 
+
 const corsOptions = {
   origin: process.env.NODE_ENV === 'production'
-    ? 'https://safedrive-pro.netlify.app'  // Your production frontend URL
+    ? ['https://safedrive-pro.netlify.app']  // Your production frontend URL as array
     : ['http://localhost:3000', 'http://localhost:3001'], // Development URLs
   methods: ['GET', 'POST', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-API-Key'],
@@ -145,6 +155,9 @@ app.use((req, res, next) => {
   const origin = req.headers.origin;
   if (allowedOrigins.includes(origin)) {
     res.header('Access-Control-Allow-Origin', origin);
+  } else {
+    // Log disallowed origin for debugging
+    console.warn(`CORS origin denied: ${origin}`);
   }
   res.header('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS');
   res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-API-Key');
