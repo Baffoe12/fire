@@ -83,7 +83,7 @@ const transporter = nodemailer.createTransport({
 
 const mailOptions = {
   from: process.env.EMAIL_USER || 'aw3469029@gmail.com',
-  to: process.env.EMERGENCY_CONTACT_EMAIL || 'emergency_contact@example.com',
+  to: process.env.EMERGENCY_CONTACT_EMAIL || 'enninrash419@gmail.com',
   subject: 'SafeDrive Emergency Alert',
   text: `Critical sensor data detected:\nAlcohol Level: ${data.alcohol}\nImpact: ${data.impact}\nTimestamp: ${data.timestamp}`
 };
