@@ -345,7 +345,56 @@ function isValidSensorData(data) {
 }
 
 function isValidAccidentData(data) {
-  return isValidSensorData(data); // Same fields, can extend with more checks
+  if (!data) {
+    console.error('Validation failed: accident data is undefined or null');
+    return false;
+  }
+  if (typeof data.device_id !== 'string') {
+    console.error('Validation failed: device_id is not string:', data.device_id);
+    return false;
+  }
+  if (typeof data.timestamp !== 'number' && typeof data.timestamp !== 'string') {
+    console.error('Validation failed: timestamp is not number or string:', data.timestamp);
+    return false;
+  }
+  if (typeof data.alcohol !== 'number') {
+    console.error('Validation failed: alcohol is not number:', data.alcohol);
+    return false;
+  }
+  if (typeof data.vibration !== 'number') {
+    console.error('Validation failed: vibration is not number:', data.vibration);
+    return false;
+  }
+  if (typeof data.distance !== 'number') {
+    console.error('Validation failed: distance is not number:', data.distance);
+    return false;
+  }
+  if (typeof data.seatbelt !== 'boolean') {
+    console.error('Validation failed: seatbelt is not boolean:', data.seatbelt);
+    return false;
+  }
+  if (typeof data.impact !== 'number') {
+    console.error('Validation failed: impact is not number:', data.impact);
+    return false;
+  }
+  // pulse is optional, so check only if defined
+  if (data.pulse !== undefined && typeof data.pulse !== 'number') {
+    console.error('Validation failed: pulse is not number:', data.pulse);
+    return false;
+  }
+  if (data.lat !== undefined && typeof data.lat !== 'number') {
+    console.error('Validation failed: lat is not number:', data.lat);
+    return false;
+  }
+  if (data.lng !== undefined && typeof data.lng !== 'number') {
+    console.error('Validation failed: lng is not number:', data.lng);
+    return false;
+  }
+  if (data.lcd_display !== undefined && typeof data.lcd_display !== 'string') {
+    console.error('Validation failed: lcd_display is not string:', data.lcd_display);
+    return false;
+  }
+  return true;
 }
 
 // --- API Key Middleware ---
