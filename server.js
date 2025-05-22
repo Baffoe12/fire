@@ -498,7 +498,33 @@ app.get('/api/map', async (req, res) => {
         lng: { [Op.ne]: null } 
       } 
     });
-    res.json(accidents.map(e => ({ id: e.id, lat: e.lat, lng: e.lng, timestamp: e.timestamp })));
+
+    // Map accident data to frontend expected fields
+    const mappedAccidents = accidents.map(e => {
+      let impactLevel = 'Low';
+      if (e.impact > 8) impactLevel = 'High';
+      else if (e.impact > 4) impactLevel = 'Medium';
+
+      const summaryParts = [];
+      if (e.alcohol > 0.05) summaryParts.push('Alcohol detected');
+      if (e.seatbelt === false) summaryParts.push('Seatbelt not worn');
+      if (e.impact > 8) summaryParts.push('Severe impact detected');
+      if (e.vibration > 5) summaryParts.push('High vibration');
+      if (e.distance < 10) summaryParts.push('Proximity warning');
+      if (e.lcd_display) summaryParts.push(`LCD: "${e.lcd_display}"`);
+
+      return {
+        id: e.id,
+        lat: e.lat,
+        lng: e.lng,
+        time: e.timestamp ? e.timestamp.toISOString() : '',
+        type: 'Accident',
+        impactLevel,
+        summary: summaryParts.join('. ') + (summaryParts.length > 0 ? '.' : '')
+      };
+    });
+
+    res.json(mappedAccidents);
   } catch (err) {
     console.error('Database error in map endpoint:', err);
     res.status(500).json({ error: 'Database error', details: err.message });
